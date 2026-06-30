@@ -20,28 +20,28 @@
 
 ### Infrastructure
 
-- [ ] T001 Add image-cache task references and scenario placeholders in specs/006-image-cache/quickstart.md
-- [ ] T002 Add cache contract verification notes in specs/006-image-cache/contracts/image-cache-commands.md
+- [X] T001 Add image-cache task references and scenario placeholders in specs/006-image-cache/quickstart.md
+- [X] T002 Add cache contract verification notes in specs/006-image-cache/contracts/image-cache-commands.md
 
 ### Backend (Rust)
 
-- [ ] T003 Add viewer command baseline assertions for cache-related invariants in src-tauri/src/lib.rs
+- [X] T003 Add viewer command baseline assertions for cache-related invariants in src-tauri/src/lib.rs
 
 ### Frontend (React)
 
-- [ ] T004 Add cache configuration constants (window radius, entry cap, byte budget) in src/features/library/store/libraryStore.ts
+- [X] T004 Add cache configuration constants (window radius, entry cap, byte budget) in src/features/library/store/libraryStore.ts
 
 ### Integration
 
-- [ ] T005 Add non-breaking cache state placeholders to LibraryState shape in src/features/library/store/libraryStore.ts
+- [X] T005 Add non-breaking cache state placeholders to LibraryState shape in src/features/library/store/libraryStore.ts
 
 ### Testing
 
-- [ ] T006 [P] Add baseline store test scaffold for image-cache flows in src/features/library/store/libraryStore.test.ts
+- [X] T006 [P] Add baseline store test scaffold for image-cache flows in src/features/library/store/libraryStore.test.ts
 
 ### Validation
 
-- [ ] T007 Run baseline validation (`pnpm exec tsc --noEmit` and `pnpm test -- libraryStore.test.ts`) from repository root and record status in specs/006-image-cache/quickstart.md
+- [X] T007 Run baseline validation (`pnpm exec tsc --noEmit` and `pnpm test -- libraryStore.test.ts`) from repository root and record status in specs/006-image-cache/quickstart.md
 
 **Checkpoint**: Setup complete, app remains runnable, and no user-visible behavior changes yet.
 
@@ -55,31 +55,31 @@
 
 ### Infrastructure
 
-- [ ] T008 Define frontend cache entry and cache window TypeScript models in src/shared/types/library.ts
-- [ ] T009 [P] Add typed cache utility wrappers/helpers used by store actions in src/infrastructure/tauri.ts
+- [X] T008 Define frontend cache entry and cache window TypeScript models in src/shared/types/library.ts
+- [X] T009 [P] Add typed cache utility wrappers/helpers used by store actions in src/infrastructure/tauri.ts
 
 ### Backend (Rust)
 
-- [ ] T010 Keep stable viewer error contract for cache-triggered loads by hardening IMAGE_INDEX_OUT_OF_RANGE mapping in src-tauri/src/lib.rs
+- [X] T010 Keep stable viewer error contract for cache-triggered loads by hardening IMAGE_INDEX_OUT_OF_RANGE mapping in src-tauri/src/lib.rs
 
 ### Frontend (React)
 
-- [ ] T011 Implement pure helper functions for cache window calculation and boundary clamping in src/features/library/store/libraryStore.ts
-- [ ] T012 Implement pure helper functions for image-size estimation and deterministic eviction ordering in src/features/library/store/libraryStore.ts
+- [X] T011 Implement pure helper functions for cache window calculation and boundary clamping in src/features/library/store/libraryStore.ts
+- [X] T012 Implement pure helper functions for image-size estimation and deterministic eviction ordering in src/features/library/store/libraryStore.ts
 
 ### Integration
 
-- [ ] T013 Wire cache helper outputs into non-mutating store selectors for diagnostics in src/features/library/store/libraryStore.ts
+- [X] T013 Wire cache helper outputs into non-mutating store selectors for diagnostics in src/features/library/store/libraryStore.ts
 
 ### Testing
 
-- [ ] T014 [P] Add unit tests for cache window and boundary helper functions in src/features/library/store/libraryStore.test.ts
-- [ ] T015 [P] Add unit tests for eviction ordering and byte-budget helper functions in src/features/library/store/libraryStore.test.ts
-- [ ] T016 [P] Add Rust regression tests for viewer error code stability in src-tauri/src/lib.rs
+- [X] T014 [P] Add unit tests for cache window and boundary helper functions in src/features/library/store/libraryStore.test.ts
+- [X] T015 [P] Add unit tests for eviction ordering and byte-budget helper functions in src/features/library/store/libraryStore.test.ts
+- [X] T016 [P] Add Rust regression tests for viewer error code stability in src-tauri/src/lib.rs
 
 ### Validation
 
-- [ ] T017 Run foundational test suite (`pnpm test -- libraryStore.test.ts` and `cargo test`) and update results in specs/006-image-cache/quickstart.md
+- [X] T017 Run foundational test suite (`pnpm test -- libraryStore.test.ts` and `cargo test`) and update results in specs/006-image-cache/quickstart.md
 
 **Checkpoint**: Foundational cache primitives are tested and stable; user story work can proceed.
 
@@ -93,32 +93,32 @@
 
 ### Infrastructure (US1)
 
-- [ ] T018 [US1] Add optional cache diagnostics fields for current/prev/next occupancy in src/shared/types/library.ts
+- [X] T018 [US1] Add optional cache diagnostics fields for current/prev/next occupancy in src/shared/types/library.ts
 
 ### Backend (Rust) (US1)
 
-- [ ] T019 [US1] Ensure load_album_image command path remains lazy and single-image only for prefetch calls in src-tauri/src/lib.rs
+- [X] T019 [US1] Ensure load_album_image command path remains lazy and single-image only for prefetch calls in src-tauri/src/lib.rs
 
 ### Frontend (React) (US1)
 
-- [ ] T020 [US1] Seed viewer cache with current image on openAlbumViewer success in src/features/library/store/libraryStore.ts
-- [ ] T021 [US1] Implement adjacent prefetch routine for current_index - 1 and current_index + 1 in src/features/library/store/libraryStore.ts
-- [ ] T022 [US1] Reuse cached entries before invoking loadAlbumImage in goToImage and loadThumbnailImage in src/features/library/store/libraryStore.ts
+- [X] T020 [US1] Seed viewer cache with current image on openAlbumViewer success in src/features/library/store/libraryStore.ts
+- [X] T021 [US1] Implement adjacent prefetch routine for current_index - 1 and current_index + 1 in src/features/library/store/libraryStore.ts
+- [X] T022 [US1] Reuse cached entries before invoking loadAlbumImage in goToImage and loadThumbnailImage in src/features/library/store/libraryStore.ts
 
 ### Integration (US1)
 
-- [ ] T023 [US1] Integrate adjacent-prefetch trigger after successful navigation update in src/features/library/store/libraryStore.ts
-- [ ] T024 [US1] Keep ThumbnailStrip selection flow compatible with cache hits in src/features/library/components/ThumbnailStrip.tsx
+- [X] T023 [US1] Integrate adjacent-prefetch trigger after successful navigation update in src/features/library/store/libraryStore.ts
+- [X] T024 [US1] Keep ThumbnailStrip selection flow compatible with cache hits in src/features/library/components/ThumbnailStrip.tsx
 
 ### Testing (US1)
 
-- [ ] T025 [P] [US1] Add store tests for cache seeding on viewer open in src/features/library/store/libraryStore.test.ts
-- [ ] T026 [P] [US1] Add store tests for adjacent prefetch on next/previous navigation in src/features/library/store/libraryStore.test.ts
-- [ ] T027 [P] [US1] Add component test for responsive previous/next navigation rendering in src/features/library/components/LibraryView.test.tsx
+- [X] T025 [P] [US1] Add store tests for cache seeding on viewer open in src/features/library/store/libraryStore.test.ts
+- [X] T026 [P] [US1] Add store tests for adjacent prefetch on next/previous navigation in src/features/library/store/libraryStore.test.ts
+- [X] T027 [P] [US1] Add component test for responsive previous/next navigation rendering in src/features/library/components/LibraryView.test.tsx
 
 ### Validation (US1)
 
-- [ ] T028 [US1] Execute quickstart Scenario A and record measured outcomes in specs/006-image-cache/quickstart.md
+- [X] T028 [US1] Execute quickstart Scenario A and record measured outcomes in specs/006-image-cache/quickstart.md
 
 **Checkpoint**: MVP complete; adjacent navigation is improved and independently testable in a runnable app.
 
@@ -132,32 +132,32 @@
 
 ### Infrastructure (US2)
 
-- [ ] T029 [US2] Add configurable cache budget constants with safe defaults in src/features/library/store/libraryStore.ts
+- [X] T029 [US2] Add configurable cache budget constants with safe defaults in src/features/library/store/libraryStore.ts
 
 ### Backend (Rust) (US2)
 
-- [ ] T030 [US2] Add Rust command-level regression test to confirm no cache persistence side effects in metadata paths in src-tauri/src/lib.rs
+- [X] T030 [US2] Add Rust command-level regression test to confirm no cache persistence side effects in metadata paths in src-tauri/src/lib.rs
 
 ### Frontend (React) (US2)
 
-- [ ] T031 [US2] Implement out-of-window eviction pass after each navigation update in src/features/library/store/libraryStore.ts
-- [ ] T032 [US2] Implement byte-budget enforcement pass that evicts farthest entries until under budget in src/features/library/store/libraryStore.ts
-- [ ] T033 [US2] Preserve current and adjacent entries as eviction-protected candidates when feasible in src/features/library/store/libraryStore.ts
+- [X] T031 [US2] Implement out-of-window eviction pass after each navigation update in src/features/library/store/libraryStore.ts
+- [X] T032 [US2] Implement byte-budget enforcement pass that evicts farthest entries until under budget in src/features/library/store/libraryStore.ts
+- [X] T033 [US2] Preserve current and adjacent entries as eviction-protected candidates when feasible in src/features/library/store/libraryStore.ts
 
 ### Integration (US2)
 
-- [ ] T034 [US2] Integrate eviction and budget enforcement into openAlbumViewer/goToImage/loadThumbnailImage lifecycle in src/features/library/store/libraryStore.ts
-- [ ] T035 [US2] Clear cache deterministically on closeViewer and album switch in src/features/library/store/libraryStore.ts
+- [X] T034 [US2] Integrate eviction and budget enforcement into openAlbumViewer/goToImage/loadThumbnailImage lifecycle in src/features/library/store/libraryStore.ts
+- [X] T035 [US2] Clear cache deterministically on closeViewer and album switch in src/features/library/store/libraryStore.ts
 
 ### Testing (US2)
 
-- [ ] T036 [P] [US2] Add store tests for distant-image eviction behavior in src/features/library/store/libraryStore.test.ts
-- [ ] T037 [P] [US2] Add store tests for byte-budget enforcement and farthest-first eviction in src/features/library/store/libraryStore.test.ts
-- [ ] T038 [P] [US2] Add store tests for rapid back-and-forth navigation without duplicate cache entries in src/features/library/store/libraryStore.test.ts
+- [X] T036 [P] [US2] Add store tests for distant-image eviction behavior in src/features/library/store/libraryStore.test.ts
+- [X] T037 [P] [US2] Add store tests for byte-budget enforcement and farthest-first eviction in src/features/library/store/libraryStore.test.ts
+- [X] T038 [P] [US2] Add store tests for rapid back-and-forth navigation without duplicate cache entries in src/features/library/store/libraryStore.test.ts
 
 ### Validation (US2)
 
-- [ ] T039 [US2] Execute quickstart Scenarios B and E and log memory-behavior results in specs/006-image-cache/quickstart.md
+- [X] T039 [US2] Execute quickstart Scenarios B and E and log memory-behavior results in specs/006-image-cache/quickstart.md
 
 **Checkpoint**: Cache memory remains bounded and independently verifiable while app stays runnable.
 
@@ -171,31 +171,31 @@
 
 ### Infrastructure (US3)
 
-- [ ] T040 [US3] Add boundary-case validation checklist entries in specs/006-image-cache/quickstart.md
+- [X] T040 [US3] Add boundary-case validation checklist entries in specs/006-image-cache/quickstart.md
 
 ### Backend (Rust) (US3)
 
-- [ ] T041 [US3] Add Rust regression test for out-of-range image load responses used by boundary handling in src-tauri/src/lib.rs
+- [X] T041 [US3] Add Rust regression test for out-of-range image load responses used by boundary handling in src-tauri/src/lib.rs
 
 ### Frontend (React) (US3)
 
-- [ ] T042 [US3] Clamp adjacent prefetch targets to valid index range for first/last image in src/features/library/store/libraryStore.ts
-- [ ] T043 [US3] Recenter cache window and drop stale distant entries after jump navigation in src/features/library/store/libraryStore.ts
-- [ ] T044 [US3] Prevent duplicate cache keys during rapid boundary navigation updates in src/features/library/store/libraryStore.ts
+- [X] T042 [US3] Clamp adjacent prefetch targets to valid index range for first/last image in src/features/library/store/libraryStore.ts
+- [X] T043 [US3] Recenter cache window and drop stale distant entries after jump navigation in src/features/library/store/libraryStore.ts
+- [X] T044 [US3] Prevent duplicate cache keys during rapid boundary navigation updates in src/features/library/store/libraryStore.ts
 
 ### Integration (US3)
 
-- [ ] T045 [US3] Keep LibraryView boundary controls aligned with cache-safe navigation behavior in src/features/library/components/LibraryView.tsx
+- [X] T045 [US3] Keep LibraryView boundary controls aligned with cache-safe navigation behavior in src/features/library/components/LibraryView.tsx
 
 ### Testing (US3)
 
-- [ ] T046 [P] [US3] Add store tests for first/last boundary cache updates in src/features/library/store/libraryStore.test.ts
-- [ ] T047 [P] [US3] Add store tests for jump navigation recentering and stale-entry cleanup in src/features/library/store/libraryStore.test.ts
-- [ ] T048 [P] [US3] Add component test to assert no invalid boundary navigation calls from UI controls in src/features/library/components/LibraryView.test.tsx
+- [X] T046 [P] [US3] Add store tests for first/last boundary cache updates in src/features/library/store/libraryStore.test.ts
+- [X] T047 [P] [US3] Add store tests for jump navigation recentering and stale-entry cleanup in src/features/library/store/libraryStore.test.ts
+- [X] T048 [P] [US3] Add component test to assert no invalid boundary navigation calls from UI controls in src/features/library/components/LibraryView.test.tsx
 
 ### Validation (US3)
 
-- [ ] T049 [US3] Execute quickstart Scenarios C and D and record pass/fail evidence in specs/006-image-cache/quickstart.md
+- [X] T049 [US3] Execute quickstart Scenarios C and D and record pass/fail evidence in specs/006-image-cache/quickstart.md
 
 **Checkpoint**: Boundary and jump behavior are robust and independently testable.
 
@@ -207,28 +207,28 @@
 
 ### Infrastructure
 
-- [ ] T050 Update implementation notes and final cache policy values in specs/006-image-cache/plan.md
+- [X] T050 Update implementation notes and final cache policy values in specs/006-image-cache/plan.md
 
 ### Backend (Rust)
 
-- [ ] T051 Verify Rust command/type consistency for cache-related flows in src-tauri/src/lib.rs and src-tauri/src/services/zip_service.rs
+- [X] T051 Verify Rust command/type consistency for cache-related flows in src-tauri/src/lib.rs and src-tauri/src/services/zip_service.rs
 
 ### Frontend (React)
 
-- [ ] T052 Remove temporary debug-only cache traces while keeping diagnostics needed for tests in src/features/library/store/libraryStore.ts
+- [X] T052 Remove temporary debug-only cache traces while keeping diagnostics needed for tests in src/features/library/store/libraryStore.ts
 
 ### Integration
 
-- [ ] T053 Verify cross-layer contract consistency between src/shared/types/library.ts, src/infrastructure/tauri.ts, and src-tauri/src/lib.rs
+- [X] T053 Verify cross-layer contract consistency between src/shared/types/library.ts, src/infrastructure/tauri.ts, and src-tauri/src/lib.rs
 
 ### Testing
 
-- [ ] T054 Run full frontend tests with pnpm test and resolve regressions in src/features/library/components/*.test.tsx and src/features/library/store/libraryStore.test.ts
-- [ ] T055 Run full Rust tests with cargo test in src-tauri/ and resolve regressions in src-tauri/src/lib.rs
+- [X] T054 Run full frontend tests with pnpm test and resolve regressions in src/features/library/components/*.test.tsx and src/features/library/store/libraryStore.test.ts
+- [X] T055 Run full Rust tests with cargo test in src-tauri/ and resolve regressions in src-tauri/src/lib.rs
 
 ### Validation
 
-- [ ] T056 Run complete quickstart validation from specs/006-image-cache/quickstart.md and confirm app remains runnable after each completed phase
+- [X] T056 Run complete quickstart validation from specs/006-image-cache/quickstart.md and confirm app remains runnable after each completed phase
 
 ---
 
@@ -303,3 +303,4 @@ T034-T035 Integration into viewer lifecycle
 - Every task targets a single implementation goal.
 - After each task, run the smallest relevant validation command/test before continuing.
 - Do not merge tasks that span unrelated responsibilities.
+

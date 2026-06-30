@@ -103,3 +103,14 @@ Expected codes for cache-related navigation flows:
 - Any ZIP image read remains routed through `ZipService` via existing commands.
 - Cache is in-memory only and session-scoped.
 - Album ZIP contents must never be duplicated or rewritten.
+
+## Contract Verification (2026-06-30)
+
+- No new Tauri commands were introduced for image cache; the implementation uses existing commands:
+  - `open_album_viewer`
+  - `load_album_image`
+  - `save_reading_progress`
+- Error payload compatibility preserved, including `IMAGE_INDEX_OUT_OF_RANGE` behavior.
+- Rust regression tests added in `src-tauri/src/lib.rs` to verify:
+  - out-of-range image load code stability
+  - no metadata persistence side effects from image-loading flows

@@ -253,3 +253,23 @@ All future extensions must preserve lazy loading, ZIP source-of-truth, and no al
 ## Complexity Tracking
 
 No constitution violations. No unjustified abstractions introduced.
+
+## Implementation Notes (2026-06-30)
+
+- Implemented bounded in-memory cache in `src/features/library/store/libraryStore.ts` with explicit policy constants:
+  - `VIEWER_CACHE_WINDOW_RADIUS = 1`
+  - `VIEWER_CACHE_MAX_ENTRIES = 9`
+  - `VIEWER_CACHE_MAX_ESTIMATED_BYTES = 24 * 1024 * 1024`
+- Added cache helper functions for clamping, cache window calculation, size estimation, and deterministic eviction ordering.
+- Integrated adjacent prefetch and cache hit reuse into viewer navigation lifecycle (`openAlbumViewer`, `goToImage`, `loadThumbnailImage`, `closeViewer`).
+- Added cache diagnostics state for current/previous/next occupancy and estimated cache size.
+- Added frontend tests for:
+  - helper behavior
+  - cache seeding
+  - adjacent prefetch
+  - stale-entry eviction
+  - duplicate-entry protection
+  - boundary-safe UI behavior
+- Added Rust regression tests for:
+  - `IMAGE_INDEX_OUT_OF_RANGE` contract stability
+  - no cache persistence side effects in metadata after image loads

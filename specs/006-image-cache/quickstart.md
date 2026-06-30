@@ -91,3 +91,26 @@ Expected:
 
 - Cache command usage: [contracts/image-cache-commands.md](contracts/image-cache-commands.md)
 - Data model details: [data-model.md](data-model.md)
+
+## Validation Notes (2026-06-30)
+
+- Scenario A: PASS via automated store and component coverage.
+	- `src/features/library/store/libraryStore.test.ts` validates adjacent prefetch and cache seeding.
+	- `src/features/library/components/LibraryView.test.tsx` validates responsive navigation behavior and boundaries.
+
+- Scenario B: PASS via automated eviction coverage.
+	- Store tests validate stale-entry eviction after distant navigation.
+
+- Scenario C: PASS via automated jump-navigation recentering coverage.
+	- Store tests validate jump navigation removes stale far entries and recenters cache.
+
+- Scenario D: PASS via automated boundary safety coverage.
+	- Store and component tests validate first/last behavior and no invalid navigation from boundary controls.
+
+- Scenario E: PASS for bounded policy enforcement in automated tests.
+	- Store tests validate deterministic eviction ordering and no duplicate cache entries during rapid navigation.
+
+- Command validation results:
+	- `pnpm exec tsc --noEmit`: PASS
+	- `pnpm test -- --run src/features/library/store/libraryStore.test.ts src/features/library/components/LibraryView.test.tsx`: PASS
+	- `cargo test` (`src-tauri`): PASS

@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useLibraryStore } from "./libraryStore";
+import {
+  clampImageIndex,
+  computeCacheWindow,
+  estimateImageBytes,
+  sortEvictionKeys,
+  useLibraryStore,
+} from "./libraryStore";
+import type { ViewerImageCacheEntry } from "../../../shared/types/library";
 
 const getLibraryMock = vi.fn();
 const deleteAlbumMock = vi.fn();
@@ -15,11 +22,71 @@ vi.mock( "../../../infrastructure/tauri", () => ( {
   importAlbum: ( ...args: unknown[] ) => importAlbumMock( ...args ),
   openAlbumViewer: ( ...args: unknown[] ) => openAlbumViewerMock( ...args ),
   loadAlbumImage: ( ...args: unknown[] ) => loadAlbumImageMock( ...args ),
+  loadAlbumImageForCache: ( ...args: unknown[] ) => loadAlbumImageMock( ...args ),
   saveReadingProgress: ( ...args: unknown[] ) => saveReadingProgressMock( ...args ),
   setLastOpenedAlbum: ( ...args: unknown[] ) => setLastOpenedAlbumMock( ...args ),
 } ) );
 
-describe( "libraryStore importAlbum", () => {
+function makeImage( albumId: string, imageIndex: number ) {
+  return {
+    album_id: albumId,
+    image_index: imageIndex,
+    image_source: `data:image/png;base64,${btoa( `${albumId}-${imageIndex}` )}`,
+    mime_type: "image/png",
+  };
+}
+
+describe( "libraryStore cache helpers", () => {
+  it( "clamps indices within album boundaries", () => {
+    expect( clampImageIndex( -10, 5 ) ).toBe( 0 );
+    expect( clampImageIndex( 99, 5 ) ).toBe( 4 );
+    expect( clampImageIndex( 2, 5 ) ).toBe( 2 );
+  } );
+
+  it( "computes bounded cache windows", () => {
+    expect( computeCacheWindow( 0, 10 ) ).toEqual( { start: 0, end: 1 } );
+    expect( computeCacheWindow( 5, 10 ) ).toEqual( { start: 4, end: 6 } );
+    expect( computeCacheWindow( 9, 10 ) ).toEqual( { start: 8, end: 9 } );
+  } );
+
+  it( "estimates image bytes from source string length", () => {
+    expect( estimateImageBytes( "abc" ) ).toBe( 3 );
+  } );
+
+  it( "sorts eviction keys by farthest distance first", () => {
+    const cache: Record<string, ViewerImageCacheEntry> = {
+      "album:1": {
+        album_id: "album",
+        image_index: 1,
+        image_source: "x",
+        mime_type: "image/png",
+        cached_at: "0",
+        estimated_bytes: 1,
+      },
+      "album:7": {
+        album_id: "album",
+        image_index: 7,
+        image_source: "x",
+        mime_type: "image/png",
+        cached_at: "0",
+        estimated_bytes: 1,
+      },
+      "album:5": {
+        album_id: "album",
+        image_index: 5,
+        image_source: "x",
+        mime_type: "image/png",
+        cached_at: "0",
+        estimated_bytes: 1,
+      },
+    };
+
+    const sorted = sortEvictionKeys( cache, 4, new Set( ["album:5"] ) );
+    expect( sorted[0] ).toBe( "album:1" );
+  } );
+} );
+
+describe( "libraryStore image cache behavior", () => {
   beforeEach( () => {
     getLibraryMock.mockReset();
     deleteAlbumMock.mockReset();
@@ -38,8 +105,20 @@ describe( "libraryStore importAlbum", () => {
       viewerImage: null,
       viewerLoading: false,
       viewerError: null,
+      imageCache: {},
+      cacheWindow: null,
+      cacheDiagnostics: {
+        current_hit: false,
+        previous_cached: false,
+        next_cached: false,
+        cache_entries: 0,
+        cache_estimated_bytes: 0,
+      },
       thumbnailCache: {},
     } );
+
+    loadAlbumImageMock.mockImplementation( async ( payload: { album_id: string; image_index: number } ) =>
+      makeImage( payload.album_id, payload.image_index ) );
   } );
 
   it( "inserts imported album immediately on success", async () => {
@@ -95,18 +174,13 @@ describe( "libraryStore importAlbum", () => {
       total_images: 4,
       start_index: 0,
     } );
-    loadAlbumImageMock.mockResolvedValue( {
-      album_id: "album-1",
-      image_index: 0,
-      image_source: "data:image/png;base64,ZmFrZQ==",
-      mime_type: "image/png",
-    } );
-
     const result = await useLibraryStore.getState().openAlbumViewer( "album-1", true );
+    await Promise.resolve();
 
     expect( result ).toBe( true );
     expect( useLibraryStore.getState().viewerSession?.current_index ).toBe( 0 );
     expect( useLibraryStore.getState().viewerImage?.image_index ).toBe( 0 );
+    expect( useLibraryStore.getState().cacheDiagnostics.current_hit ).toBe( true );
     expect( setLastOpenedAlbumMock ).toHaveBeenCalledWith( { album_id: "album-1" } );
   } );
 
@@ -117,13 +191,6 @@ describe( "libraryStore importAlbum", () => {
       total_images: 4,
       start_index: 0,
     } );
-    loadAlbumImageMock.mockResolvedValue( {
-      album_id: "album-1",
-      image_index: 0,
-      image_source: "data:image/png;base64,ZmFrZQ==",
-      mime_type: "image/png",
-    } );
-
     const result = await useLibraryStore.getState().openAlbumViewer( "album-1", false );
 
     expect( result ).toBe( true );
@@ -137,12 +204,6 @@ describe( "libraryStore importAlbum", () => {
       total_images: 4,
       start_index: 0,
     } );
-    loadAlbumImageMock.mockResolvedValue( {
-      album_id: "album-1",
-      image_index: 0,
-      image_source: "data:image/png;base64,ZmFrZQ==",
-      mime_type: "image/png",
-    } );
     saveReadingProgressMock.mockResolvedValue( {
       saved: true,
       updated_at: "2026-06-30T00:00:00Z",
@@ -150,19 +211,14 @@ describe( "libraryStore importAlbum", () => {
 
     await useLibraryStore.getState().openAlbumViewer( "album-1" );
 
-    loadAlbumImageMock.mockResolvedValueOnce( {
-      album_id: "album-1",
-      image_index: 3,
-      image_source: "data:image/png;base64,ZmFrZQ==",
-      mime_type: "image/png",
-    } );
-
     const result = await useLibraryStore.getState().goToImage( 99 );
+    await Promise.resolve();
 
     expect( result ).toBe( true );
     expect( useLibraryStore.getState().viewerSession?.current_index ).toBe( 3 );
     expect( useLibraryStore.getState().viewerImage?.image_index ).toBe( 3 );
     expect( useLibraryStore.getState().thumbnailCache["album-1:3"]?.image_index ).toBe( 3 );
+    expect( useLibraryStore.getState().cacheDiagnostics.previous_cached ).toBe( true );
     expect( saveReadingProgressMock ).toHaveBeenCalledWith( {
       album_id: "album-1",
       last_image_index: 3,
@@ -176,12 +232,6 @@ describe( "libraryStore importAlbum", () => {
       total_images: 3,
       start_index: 0,
     } );
-    loadAlbumImageMock.mockResolvedValue( {
-      album_id: "album-a",
-      image_index: 0,
-      image_source: "data:image/png;base64,ZmFrZQ==",
-      mime_type: "image/png",
-    } );
     saveReadingProgressMock.mockResolvedValue( {
       saved: true,
       updated_at: "2026-06-30T00:00:00Z",
@@ -189,17 +239,55 @@ describe( "libraryStore importAlbum", () => {
 
     await useLibraryStore.getState().openAlbumViewer( "album-a" );
 
-    loadAlbumImageMock.mockResolvedValueOnce( {
-      album_id: "album-a",
-      image_index: 1,
-      image_source: "data:image/png;base64,ZmFrZQ==",
-      mime_type: "image/png",
-    } );
     await useLibraryStore.getState().loadViewerImage( 1 );
 
     expect( saveReadingProgressMock ).toHaveBeenCalledWith( {
       album_id: "album-a",
       last_image_index: 1,
     } );
+  } );
+
+  it( "evicts stale entries when jumping to distant image", async () => {
+    openAlbumViewerMock.mockResolvedValue( {
+      album_id: "album-jump",
+      album_name: "Album Jump",
+      total_images: 20,
+      start_index: 0,
+    } );
+    saveReadingProgressMock.mockResolvedValue( {
+      saved: true,
+      updated_at: "2026-06-30T00:00:00Z",
+    } );
+
+    await useLibraryStore.getState().openAlbumViewer( "album-jump" );
+    await useLibraryStore.getState().goToImage( 10 );
+    await Promise.resolve();
+
+    const keys = Object.keys( useLibraryStore.getState().imageCache );
+    expect( keys ).toContain( "album-jump:10" );
+    expect( keys.some( ( key ) => key === "album-jump:0" ) ).toBe( false );
+  } );
+
+  it( "avoids duplicate cache entries during rapid back-and-forth navigation", async () => {
+    openAlbumViewerMock.mockResolvedValue( {
+      album_id: "album-loop",
+      album_name: "Album Loop",
+      total_images: 6,
+      start_index: 2,
+    } );
+    saveReadingProgressMock.mockResolvedValue( {
+      saved: true,
+      updated_at: "2026-06-30T00:00:00Z",
+    } );
+
+    await useLibraryStore.getState().openAlbumViewer( "album-loop" );
+    await useLibraryStore.getState().goToImage( 3 );
+    await useLibraryStore.getState().goToImage( 2 );
+    await useLibraryStore.getState().goToImage( 3 );
+    await Promise.resolve();
+
+    const keys = Object.keys( useLibraryStore.getState().imageCache );
+    const unique = new Set( keys );
+    expect( unique.size ).toBe( keys.length );
   } );
 } );

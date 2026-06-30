@@ -66,6 +66,32 @@ export interface LoadAlbumImageResponse {
   mime_type: string;
 }
 
+export interface ViewerImageCacheEntry {
+  album_id: string;
+  image_index: number;
+  image_source: string;
+  mime_type: string;
+  cached_at: string;
+  estimated_bytes: number;
+}
+
+export interface CacheWindowState {
+  current_index: number;
+  window_start: number;
+  window_end: number;
+  max_entries: number;
+  max_estimated_bytes: number;
+  total_estimated_bytes: number;
+}
+
+export interface ImageCacheDiagnostics {
+  current_hit: boolean;
+  previous_cached: boolean;
+  next_cached: boolean;
+  cache_entries: number;
+  cache_estimated_bytes: number;
+}
+
 export interface SaveReadingProgressRequest {
   album_id: string;
   last_image_index: number;

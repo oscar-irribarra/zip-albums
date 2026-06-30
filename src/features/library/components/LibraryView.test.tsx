@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import LibraryView from "./LibraryView";
 import type { AlbumViewSession, LoadAlbumImageResponse, SortOrder } from "../../../shared/types/library";
 
@@ -78,6 +78,39 @@ vi.mock("../store/libraryStore", () => ( {
 } ) );
 
 describe("LibraryView", () => {
+  beforeEach(() => {
+    loadLibrary.mockReset();
+    deleteAlbum.mockReset();
+    importAlbum.mockReset();
+    openAlbumViewer.mockReset();
+    goToImage.mockReset();
+    loadThumbnailImage.mockReset();
+    closeViewer.mockReset();
+    setSortOrder.mockReset();
+
+    mockState.sortOrder = "name";
+    mockState.loading = false;
+    mockState.importing = false;
+    mockState.error = null;
+    mockState.viewerSession = null;
+    mockState.viewerImage = null;
+    mockState.viewerLoading = false;
+    mockState.viewerError = null;
+    mockState.thumbnailCache = {};
+    mockState.albums = [
+      {
+        id: "album-1",
+        title: "Album One",
+        path: "C:/albums/album-1.zip",
+        image_count: 3,
+        cover_index: 0,
+        imported_at: "2026-06-30T00:00:00Z",
+        last_opened_at: null,
+        cover_data: null,
+      },
+    ];
+  });
+
   it("renders imported albums", () => {
     mockState.error = null;
     mockState.albums = [
@@ -123,7 +156,8 @@ describe("LibraryView", () => {
 
     render(<LibraryView />);
 
-    expect(screen.getByRole("heading", { name: "Album One" })).toBeInTheDocument();
+    const viewer = screen.getByLabelText("Album viewer");
+    expect(within(viewer).getByRole("heading", { name: "Album One" })).toBeInTheDocument();
     expect(screen.getByText("1 / 10")).toBeInTheDocument();
 
     mockState.viewerSession = null;
@@ -177,5 +211,57 @@ describe("LibraryView", () => {
 
     mockState.viewerSession = null;
     mockState.thumbnailCache = {};
+  });
+
+  it("disables previous button at first image", () => {
+    mockState.viewerSession = {
+      album_id: "album-1",
+      album_name: "Album One",
+      total_images: 3,
+      current_index: 0,
+      started_at: "2026-06-30T00:00:00Z",
+    };
+    mockState.viewerImage = {
+      album_id: "album-1",
+      image_index: 0,
+      image_source: "data:image/png;base64,ZmFrZQ==",
+      mime_type: "image/png",
+    };
+
+    render(<LibraryView />);
+    const previous = screen.getByRole("button", { name: "Previous" });
+    fireEvent.click(previous);
+
+    expect(previous).toBeDisabled();
+    expect(goToImage).not.toHaveBeenCalled();
+
+    mockState.viewerSession = null;
+    mockState.viewerImage = null;
+  });
+
+  it("disables next button at last image", () => {
+    mockState.viewerSession = {
+      album_id: "album-1",
+      album_name: "Album One",
+      total_images: 3,
+      current_index: 2,
+      started_at: "2026-06-30T00:00:00Z",
+    };
+    mockState.viewerImage = {
+      album_id: "album-1",
+      image_index: 2,
+      image_source: "data:image/png;base64,ZmFrZQ==",
+      mime_type: "image/png",
+    };
+
+    render(<LibraryView />);
+    const next = screen.getByRole("button", { name: "Next" });
+    fireEvent.click(next);
+
+    expect(next).toBeDisabled();
+    expect(goToImage).not.toHaveBeenCalled();
+
+    mockState.viewerSession = null;
+    mockState.viewerImage = null;
   });
 } );

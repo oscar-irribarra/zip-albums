@@ -1020,4 +1020,93 @@ mod tests {
 
         std::env::set_current_dir(old_cwd).unwrap();
     }
+
+    #[test]
+    fn load_album_image_returns_out_of_range_error_code_for_boundary_requests() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-image-cache-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        let zip_path = temp_dir.join("boundary.zip");
+        create_zip(&zip_path, &[("cover.png", b"png")]);
+        let catalog_path = MetadataService::catalog_path(&temp_dir);
+        MetadataService::add_album(
+            &catalog_path,
+            AlbumMetadata {
+                id: "boundary".to_string(),
+                title: "Boundary".to_string(),
+                path: zip_path.to_string_lossy().to_string(),
+                image_count: 1,
+                cover_index: 0,
+                imported_at: "0".to_string(),
+                last_opened_at: None,
+            },
+        )
+        .unwrap();
+
+        let result = load_album_image(LoadAlbumImageRequest {
+            album_id: "boundary".to_string(),
+            image_index: 9,
+        })
+        .unwrap_err();
+        assert_eq!(result.code, "IMAGE_INDEX_OUT_OF_RANGE");
+
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
+
+    #[test]
+    fn load_album_image_does_not_persist_cache_state_in_metadata() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-image-cache-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        let zip_path = temp_dir.join("nocachepersist.zip");
+        create_zip(&zip_path, &[("cover.png", b"png"), ("next.png", b"png2")]);
+        let catalog_path = MetadataService::catalog_path(&temp_dir);
+        MetadataService::add_album(
+            &catalog_path,
+            AlbumMetadata {
+                id: "nocachepersist".to_string(),
+                title: "No Cache Persist".to_string(),
+                path: zip_path.to_string_lossy().to_string(),
+                image_count: 2,
+                cover_index: 0,
+                imported_at: "0".to_string(),
+                last_opened_at: None,
+            },
+        )
+        .unwrap();
+
+        let before = MetadataService::load_catalog(&catalog_path).unwrap();
+        assert!(before.reading_progress.is_empty());
+
+        let image = load_album_image(LoadAlbumImageRequest {
+            album_id: "nocachepersist".to_string(),
+            image_index: 1,
+        })
+        .unwrap();
+        assert_eq!(image.image_index, 1);
+
+        let after = MetadataService::load_catalog(&catalog_path).unwrap();
+        assert!(after.reading_progress.is_empty());
+        assert_eq!(after.albums.len(), before.albums.len());
+
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
 }
