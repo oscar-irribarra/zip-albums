@@ -57,6 +57,20 @@ impl MetadataService {
         Self::save_catalog(path, &catalog)?;
         Ok(catalog)
     }
+
+    pub fn has_album_with_path(catalog: &AlbumCatalog, candidate_path: &str) -> bool {
+        catalog
+            .albums
+            .iter()
+            .any(|album| album.path == candidate_path)
+    }
+
+    pub fn add_album(path: &Path, album: AlbumMetadata) -> std::io::Result<AlbumCatalog> {
+        let mut catalog = Self::load_catalog(path)?;
+        catalog.albums.push(album);
+        Self::save_catalog(path, &catalog)?;
+        Ok(catalog)
+    }
 }
 
 #[cfg(test)]
@@ -106,5 +120,32 @@ mod tests {
 
         let updated = MetadataService::remove_album(&path, "album-1").unwrap();
         assert!(updated.albums.is_empty());
+    }
+
+    #[test]
+    fn appends_album_to_catalog() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-metadata-test-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = fs::create_dir_all(&temp_dir);
+        let path = temp_dir.join("albums_catalog.json");
+
+        let album = AlbumMetadata {
+            id: "album-2".to_string(),
+            title: "Import Test".to_string(),
+            path: "/tmp/import.zip".to_string(),
+            image_count: 3,
+            cover_index: 0,
+            imported_at: "2026-06-30T00:00:00Z".to_string(),
+            last_opened_at: None,
+        };
+
+        let updated = MetadataService::add_album(&path, album).unwrap();
+        assert_eq!(updated.albums.len(), 1);
+        assert_eq!(updated.albums[0].id, "album-2");
     }
 }

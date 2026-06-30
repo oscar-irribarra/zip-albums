@@ -47,6 +47,13 @@ Purpose: Import one ZIP file as a new album after validation.
 - `DUPLICATE_ALBUM`: ZIP already imported.
 - `IO_FAILURE`: Unexpected local file operation failure.
 
+## Foundational Alignment Notes
+
+- Request payload key is `payload.zip_path` in Tauri `invoke` calls.
+- Successful responses return `album` as an `AlbumSummary` object with snake_case fields.
+- Error responses include stable `code` and user-facing `message`.
+- Duplicate detection is based on canonical ZIP path persisted in metadata.
+
 ## Existing Commands Used With This Feature
 
 ### get_library

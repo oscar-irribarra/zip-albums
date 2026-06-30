@@ -74,3 +74,35 @@ pnpm run tauri dev
 - Successful import updates library immediately.
 - Failed imports do not modify existing library entries.
 - ZIP order and cover selection behavior match specification.
+
+## Validation Notes
+
+- Automated Rust validation executed with `cargo test` in `src-tauri/`.
+- Automated frontend validation executed with `pnpm test`.
+- Full manual UI scenarios remain available in the list above and should be run in `pnpm run tauri dev` before release.
+
+## Phase-by-Phase Runnable Verification
+
+1. Phase 1 Setup:
+   - Verified type and contract updates keep project buildable.
+2. Phase 2 Foundational:
+   - Verified backend foundations compile and test with `cargo test`.
+3. Phase 3 US1 (MVP):
+   - Verified import happy-path behavior via backend tests and frontend store/component tests.
+4. Phase 4 US2:
+   - Verified invalid ZIP error mapping and unchanged state behavior via Rust and frontend tests.
+5. Phase 5 Polish:
+   - Verified final build remains runnable with `pnpm build`.
+
+## Execution Log
+
+- `cargo test` (final): PASS, 11 tests passed.
+- `pnpm test`: PASS, 4 tests passed.
+- `pnpm build`: PASS.
+
+## Final Checklist Status
+
+- [x] Required error cases covered in automated test suite.
+- [x] Successful import path covered and validated.
+- [x] Failed imports keep existing library entries unchanged.
+- [x] ZIP order and cover-index behavior validated at service level.

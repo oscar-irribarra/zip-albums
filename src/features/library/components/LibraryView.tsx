@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useLibraryStore } from "../store/libraryStore";
 import AlbumCard from "./AlbumCard";
 import type { SortOrder } from "../../../shared/types/library";
 
 function LibraryView() {
-  const { albums, sortOrder, loading, error, loadLibrary, deleteAlbum, setSortOrder } = useLibraryStore();
+  const { albums, sortOrder, loading, importing, error, loadLibrary, deleteAlbum, importAlbum, setSortOrder } = useLibraryStore();
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [pendingImportTitle, setPendingImportTitle] = useState<string | null>(null);
 
   useEffect(() => {
     void loadLibrary();
@@ -35,10 +37,32 @@ function LibraryView() {
     }
   };
 
+  const handleImport = async () => {
+    const selected = await open({
+      multiple: false,
+      filters: [{ name: "ZIP archive", extensions: ["zip"] }],
+    });
+
+    if (!selected || Array.isArray(selected)) {
+      return;
+    }
+
+    const imported = await importAlbum(selected);
+    if (imported) {
+      const title = selected.split(/[\\/]/).pop() ?? "album";
+      setPendingImportTitle(title);
+      setTimeout(() => setPendingImportTitle(null), 2000);
+    }
+  };
+
   return (
     <section className="library-view">
       <header className="library-toolbar">
         <h2>Library</h2>
+        <div className="library-toolbar-actions">
+          <button type="button" onClick={() => void handleImport()} disabled={importing}>
+            {importing ? "Importing..." : "Import ZIP"}
+          </button>
         <label>
           Sort by
           <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value as SortOrder)}>
@@ -46,6 +70,7 @@ function LibraryView() {
             <option value="date">Date</option>
           </select>
         </label>
+        </div>
       </header>
 
       {loading && <p>Loading albums...</p>}
@@ -60,6 +85,7 @@ function LibraryView() {
       </div>
 
       {pendingDeleteId && <p>Album removed from library.</p>}
+      {pendingImportTitle && <p>Imported {pendingImportTitle}.</p>}
     </section>
   );
 }

@@ -20,3 +20,25 @@ export interface DeleteAlbumResponse {
   success: boolean;
   removed_album_id?: string | null;
 }
+
+export interface ImportAlbumRequest {
+  zip_path: string;
+}
+
+export interface ImportAlbumResponse {
+  album: AlbumSummary;
+}
+
+export type ImportErrorCode =
+  | "UNSUPPORTED_FORMAT"
+  | "ZIP_CORRUPTED"
+  | "ZIP_EMPTY"
+  | "NO_SUPPORTED_IMAGES"
+  | "DUPLICATE_ALBUM"
+  | "IO_FAILURE";
+
+export interface ImportAlbumError {
+  code: ImportErrorCode;
+  message: string;
+  details?: string;
+}

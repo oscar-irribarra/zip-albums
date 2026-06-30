@@ -11,6 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
+.env*
+coverage/
+src-tauri/target/
+target/
+*.tmp
 
 # Editor directories and files
 .vscode/*
