@@ -1021,6 +1021,95 @@ mod tests {
         std::env::set_current_dir(old_cwd).unwrap();
     }
 
+    // Keyboard shortcut regression checks
+    #[test]
+    fn delete_album_returns_false_for_unknown_album_id() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-delete-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        let response = delete_album(DeleteAlbumRequest {
+            album_id: "missing".to_string(),
+        })
+        .unwrap();
+
+        assert!(!response.success);
+        assert!(response.removed_album_id.is_none());
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
+
+    #[test]
+    fn delete_album_returns_success_and_removed_id_for_existing_album() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-delete-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        let zip_path = temp_dir.join("delete.zip");
+        create_zip(&zip_path, &[("cover.png", b"png")]);
+        let catalog_path = MetadataService::catalog_path(&temp_dir);
+        MetadataService::add_album(
+            &catalog_path,
+            AlbumMetadata {
+                id: "delete".to_string(),
+                title: "Delete".to_string(),
+                path: zip_path.to_string_lossy().to_string(),
+                image_count: 1,
+                cover_index: 0,
+                imported_at: "0".to_string(),
+                last_opened_at: None,
+            },
+        )
+        .unwrap();
+
+        let response = delete_album(DeleteAlbumRequest {
+            album_id: "delete".to_string(),
+        })
+        .unwrap();
+
+        assert!(response.success);
+        assert_eq!(response.removed_album_id.as_deref(), Some("delete"));
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
+
+    #[test]
+    fn open_album_viewer_returns_album_not_found_code_for_missing_album() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-viewer-shortcut-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        let err = open_album_viewer(OpenAlbumViewerRequest {
+            album_id: "missing".to_string(),
+        })
+        .unwrap_err();
+
+        assert_eq!(err.code, "ALBUM_NOT_FOUND");
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
+
     #[test]
     fn load_album_image_returns_out_of_range_error_code_for_boundary_requests() {
         let _lock = cwd_test_lock().lock().unwrap();

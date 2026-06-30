@@ -240,3 +240,27 @@ All extensibility must preserve simple architecture, avoid unnecessary abstracti
 ## Complexity Tracking
 
 No constitution violations. No unjustified abstractions introduced.
+
+## Implementation Notes (2026-06-30)
+
+- Extended keyboard shortcut handling in `src/features/library/components/LibraryView.tsx` with:
+   - ArrowLeft / ArrowRight navigation
+   - Home / End jump navigation
+   - F enter fullscreen and Escape exit fullscreen
+   - Ctrl+O and Meta+O import flow trigger
+   - Delete album shortcut routed through existing confirmation and store action
+- Added reusable keyboard helper behavior:
+   - editable target guard (`input`, `textarea`, `select`, `contentEditable`)
+   - normalized shortcut gesture mapping
+- Added album selection support in `src/features/library/components/AlbumCard.tsx` to support safe Delete shortcut targeting.
+- Added shared typing in `src/shared/types/library.ts` for shortcut gesture and guard context.
+- Added and expanded tests:
+   - `src/features/library/components/LibraryView.test.tsx`
+   - `src/features/library/store/libraryStore.test.ts`
+   - `src-tauri/src/lib.rs`
+
+Validation results:
+
+- `pnpm exec tsc --noEmit`: PASS
+- `pnpm test -- --run src/features/library/components/LibraryView.test.tsx src/features/library/store/libraryStore.test.ts`: PASS (29 tests)
+- `cargo test` (src-tauri): PASS (31 tests)

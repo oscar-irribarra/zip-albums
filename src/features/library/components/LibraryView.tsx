@@ -3,11 +3,42 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { useLibraryStore } from "../store/libraryStore";
 import AlbumCard from "./AlbumCard";
 import ThumbnailStrip from "./ThumbnailStrip";
-import type { SortOrder } from "../../../shared/types/library";
+import type { ShortcutGesture, SortOrder } from "../../../shared/types/library";
 
 interface LibraryViewProps {
   startupWarnings?: string[];
   rememberLastAlbum?: boolean;
+}
+
+const SUPPORTED_SHORTCUTS: Record<string, ShortcutGesture> = {
+  ArrowLeft: "ArrowLeft",
+  ArrowRight: "ArrowRight",
+  Home: "Home",
+  End: "End",
+  f: "f",
+  F: "f",
+  Escape: "Escape",
+  Delete: "Delete",
+};
+
+function isEditableTarget( target: EventTarget | null ): boolean {
+  const element = target as HTMLElement | null;
+  const tagName = element?.tagName?.toLowerCase();
+  return Boolean(
+    element?.isContentEditable
+      || tagName === "input"
+      || tagName === "textarea"
+      || tagName === "select",
+  );
+}
+
+function toShortcutGesture( event: KeyboardEvent ): ShortcutGesture | null {
+  const hasOpenModifier = event.ctrlKey || event.metaKey;
+  if ( hasOpenModifier && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "o" ) {
+    return "Ctrl+O";
+  }
+
+  return SUPPORTED_SHORTCUTS[event.key] ?? null;
 }
 
 function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: LibraryViewProps ) {
@@ -33,38 +64,107 @@ function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: Libra
   } = useLibraryStore();
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [pendingImportTitle, setPendingImportTitle] = useState<string | null>(null);
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
+  const [shortcutError, setShortcutError] = useState<string | null>(null);
 
   useEffect(() => {
     void loadLibrary();
   }, [loadLibrary]);
 
   useEffect(() => {
-    if (!viewerSession) {
+    if ( albums.length === 0 ) {
+      setSelectedAlbumId( null );
       return;
     }
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const tagName = target?.tagName?.toLowerCase();
+    if ( selectedAlbumId && albums.some( ( album ) => album.id === selectedAlbumId ) ) {
+      return;
+    }
 
-      if (target?.isContentEditable || tagName === "input" || tagName === "textarea" || tagName === "select") {
+    setSelectedAlbumId( albums[0].id );
+  }, [albums, selectedAlbumId]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ( isEditableTarget( event.target ) ) {
         return;
       }
 
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        void goToImage(viewerSession.current_index - 1);
+      const gesture = toShortcutGesture( event );
+      if ( !gesture ) {
+        return;
       }
 
-      if (event.key === "ArrowRight") {
-        event.preventDefault();
-        void goToImage(viewerSession.current_index + 1);
+      const isFullscreenActive = Boolean( document.fullscreenElement );
+
+      switch ( gesture ) {
+        case "ArrowLeft":
+          if ( viewerSession && viewerSession.current_index > 0 ) {
+            event.preventDefault();
+            void goToImage( viewerSession.current_index - 1 );
+          }
+          break;
+        case "ArrowRight":
+          if ( viewerSession && viewerSession.current_index < viewerSession.total_images - 1 ) {
+            event.preventDefault();
+            void goToImage( viewerSession.current_index + 1 );
+          }
+          break;
+        case "Home":
+          if ( viewerSession && viewerSession.total_images > 0 && viewerSession.current_index !== 0 ) {
+            event.preventDefault();
+            void goToImage( 0 );
+          }
+          break;
+        case "End":
+          if ( viewerSession && viewerSession.total_images > 0 && viewerSession.current_index !== viewerSession.total_images - 1 ) {
+            event.preventDefault();
+            void goToImage( viewerSession.total_images - 1 );
+          }
+          break;
+        case "f":
+          if ( viewerSession && !isFullscreenActive && document.documentElement.requestFullscreen ) {
+            event.preventDefault();
+            void document.documentElement.requestFullscreen().catch( ( error: unknown ) => {
+              setShortcutError( error instanceof Error ? error.message : "Unable to enter fullscreen" );
+            } );
+          }
+          break;
+        case "Escape":
+          if ( isFullscreenActive && document.exitFullscreen ) {
+            event.preventDefault();
+            void document.exitFullscreen().catch( ( error: unknown ) => {
+              setShortcutError( error instanceof Error ? error.message : "Unable to exit fullscreen" );
+            } );
+          }
+          break;
+        case "Ctrl+O":
+          event.preventDefault();
+          void handleImport();
+          break;
+        case "Delete": {
+          const targetAlbumId = selectedAlbumId ?? viewerSession?.album_id ?? null;
+          if ( targetAlbumId ) {
+            event.preventDefault();
+            void handleDelete( targetAlbumId );
+          }
+          break;
+        }
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goToImage, viewerSession]);
+    window.addEventListener( "keydown", handleKeyDown );
+    return () => window.removeEventListener( "keydown", handleKeyDown );
+  }, [goToImage, selectedAlbumId, viewerSession]);
+
+  useEffect( () => {
+    if ( !shortcutError ) {
+      return;
+    }
+
+    const timeout = setTimeout( () => setShortcutError( null ), 2500 );
+    return () => clearTimeout( timeout );
+  }, [shortcutError]);
 
   const sortedAlbums = useMemo(() => {
     const items = [...albums];
@@ -85,6 +185,9 @@ function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: Libra
 
     const deleted = await deleteAlbum(albumId);
     if (deleted) {
+      if ( viewerSession?.album_id === albumId ) {
+        await closeViewer();
+      }
       setPendingDeleteId(albumId);
       setTimeout(() => setPendingDeleteId(null), 1500);
     }
@@ -109,7 +212,12 @@ function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: Libra
   };
 
   const handleOpen = async (albumId: string) => {
+    setSelectedAlbumId( albumId );
     await openAlbumViewer(albumId, rememberLastAlbum);
+  };
+
+  const handleSelectAlbum = ( albumId: string ) => {
+    setSelectedAlbumId( albumId );
   };
 
   const handlePrevious = async () => {
@@ -157,6 +265,7 @@ function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: Libra
       {loading && <p>Loading albums...</p>}
       {error && <p className="error-message">{error}</p>}
       {viewerError && <p className="error-message">{viewerError}</p>}
+      {shortcutError && <p className="error-message">{shortcutError}</p>}
       {startupWarnings.map( ( warning ) => (
         <p key={warning} className="error-message">{warning}</p>
       ) )}
@@ -203,7 +312,13 @@ function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: Libra
 
       <div className="album-list">
         {sortedAlbums.map((album) => (
-          <AlbumCard key={album.id} album={album} onDelete={handleDelete} onOpen={handleOpen} />
+          <AlbumCard
+            key={album.id}
+            album={album}
+            onDelete={handleDelete}
+            onOpen={handleOpen}
+            onSelect={handleSelectAlbum}
+          />
         ))}
       </div>
 

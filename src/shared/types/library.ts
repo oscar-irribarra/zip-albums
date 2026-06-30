@@ -92,6 +92,23 @@ export interface ImageCacheDiagnostics {
   cache_estimated_bytes: number;
 }
 
+export type ShortcutGesture =
+  | "ArrowLeft"
+  | "ArrowRight"
+  | "Home"
+  | "End"
+  | "f"
+  | "Escape"
+  | "Ctrl+O"
+  | "Delete";
+
+export interface ShortcutGuardContext {
+  viewer_active: boolean;
+  is_fullscreen: boolean;
+  selected_album_id: string | null;
+  editable_target_active: boolean;
+}
+
 export interface SaveReadingProgressRequest {
   album_id: string;
   last_image_index: number;

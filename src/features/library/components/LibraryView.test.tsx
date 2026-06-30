@@ -3,6 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import LibraryView from "./LibraryView";
 import type { AlbumViewSession, LoadAlbumImageResponse, SortOrder } from "../../../shared/types/library";
 
+const openDialogMock = vi.fn();
+
+vi.mock("@tauri-apps/plugin-dialog", () => ( {
+  open: ( ...args: unknown[] ) => openDialogMock( ...args ),
+} ) );
+
 const loadLibrary = vi.fn();
 const deleteAlbum = vi.fn();
 const importAlbum = vi.fn();
@@ -87,6 +93,8 @@ describe("LibraryView", () => {
     loadThumbnailImage.mockReset();
     closeViewer.mockReset();
     setSortOrder.mockReset();
+    openDialogMock.mockReset();
+    vi.spyOn( window, "confirm" ).mockReturnValue( true );
 
     mockState.sortOrder = "name";
     mockState.loading = false;
@@ -264,4 +272,141 @@ describe("LibraryView", () => {
     mockState.viewerSession = null;
     mockState.viewerImage = null;
   });
+
+  it( "navigates with ArrowLeft and ArrowRight keyboard shortcuts", () => {
+    mockState.viewerSession = {
+      album_id: "album-1",
+      album_name: "Album One",
+      total_images: 5,
+      current_index: 2,
+      started_at: "2026-06-30T00:00:00Z",
+    };
+
+    render( <LibraryView /> );
+
+    fireEvent.keyDown( window, { key: "ArrowLeft" } );
+    fireEvent.keyDown( window, { key: "ArrowRight" } );
+
+    expect( goToImage ).toHaveBeenCalledWith( 1 );
+    expect( goToImage ).toHaveBeenCalledWith( 3 );
+  } );
+
+  it( "navigates with Home and End keyboard shortcuts", () => {
+    mockState.viewerSession = {
+      album_id: "album-1",
+      album_name: "Album One",
+      total_images: 5,
+      current_index: 2,
+      started_at: "2026-06-30T00:00:00Z",
+    };
+
+    render( <LibraryView /> );
+
+    fireEvent.keyDown( window, { key: "Home" } );
+    fireEvent.keyDown( window, { key: "End" } );
+
+    expect( goToImage ).toHaveBeenCalledWith( 0 );
+    expect( goToImage ).toHaveBeenCalledWith( 4 );
+  } );
+
+  it( "does not execute shortcuts when editing text inputs", () => {
+    mockState.viewerSession = {
+      album_id: "album-1",
+      album_name: "Album One",
+      total_images: 5,
+      current_index: 2,
+      started_at: "2026-06-30T00:00:00Z",
+    };
+
+    render( <LibraryView /> );
+    const input = document.createElement( "input" );
+    document.body.appendChild( input );
+
+    fireEvent.keyDown( input, { key: "ArrowRight" } );
+    fireEvent.keyDown( input, { key: "Home" } );
+
+    expect( goToImage ).not.toHaveBeenCalled();
+    document.body.removeChild( input );
+  } );
+
+  it( "enters and exits fullscreen with F and Escape", async () => {
+    mockState.viewerSession = {
+      album_id: "album-1",
+      album_name: "Album One",
+      total_images: 3,
+      current_index: 1,
+      started_at: "2026-06-30T00:00:00Z",
+    };
+
+    const requestFullscreen = vi.fn().mockResolvedValue( undefined );
+    const exitFullscreen = vi.fn().mockResolvedValue( undefined );
+    Object.defineProperty( document.documentElement, "requestFullscreen", {
+      configurable: true,
+      value: requestFullscreen,
+    } );
+    Object.defineProperty( document, "exitFullscreen", {
+      configurable: true,
+      value: exitFullscreen,
+    } );
+    Object.defineProperty( document, "fullscreenElement", {
+      configurable: true,
+      get: () => null,
+    } );
+
+    render( <LibraryView /> );
+    fireEvent.keyDown( window, { key: "f" } );
+    expect( requestFullscreen ).toHaveBeenCalled();
+
+    Object.defineProperty( document, "fullscreenElement", {
+      configurable: true,
+      get: () => document.documentElement,
+    } );
+
+    fireEvent.keyDown( window, { key: "Escape" } );
+    expect( exitFullscreen ).toHaveBeenCalled();
+  } );
+
+  it( "opens import flow with Ctrl+O", async () => {
+    openDialogMock.mockResolvedValue( "C:/albums/new.zip" );
+    importAlbum.mockResolvedValue( true );
+
+    render( <LibraryView /> );
+    fireEvent.keyDown( window, { key: "o", ctrlKey: true } );
+    await Promise.resolve();
+
+    expect( openDialogMock ).toHaveBeenCalled();
+    expect( importAlbum ).toHaveBeenCalledWith( "C:/albums/new.zip" );
+  } );
+
+  it( "opens import flow with Meta+O on mac-style modifier", async () => {
+    openDialogMock.mockResolvedValue( "C:/albums/new.zip" );
+    importAlbum.mockResolvedValue( true );
+
+    render( <LibraryView /> );
+    fireEvent.keyDown( window, { key: "o", metaKey: true } );
+    await Promise.resolve();
+
+    expect( openDialogMock ).toHaveBeenCalled();
+    expect( importAlbum ).toHaveBeenCalledWith( "C:/albums/new.zip" );
+  } );
+
+  it( "deletes selected album with Delete key and confirmation", async () => {
+    deleteAlbum.mockResolvedValue( true );
+    render( <LibraryView /> );
+
+    fireEvent.keyDown( window, { key: "Delete" } );
+    await Promise.resolve();
+
+    expect( deleteAlbum ).toHaveBeenCalledWith( "album-1" );
+  } );
+
+  it( "does not delete when no album is selected", async () => {
+    mockState.albums = [];
+    render( <LibraryView /> );
+
+    fireEvent.keyDown( window, { key: "Delete" } );
+    await Promise.resolve();
+
+    expect( deleteAlbum ).not.toHaveBeenCalled();
+  } );
 } );

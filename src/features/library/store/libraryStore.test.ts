@@ -291,3 +291,49 @@ describe( "libraryStore image cache behavior", () => {
     expect( unique.size ).toBe( keys.length );
   } );
 } );
+
+describe( "libraryStore keyboard shortcut regressions", () => {
+  beforeEach( () => {
+    deleteAlbumMock.mockReset();
+    importAlbumMock.mockReset();
+  } );
+
+  it( "keeps delete_album command path through existing store action", async () => {
+    deleteAlbumMock.mockResolvedValue( { success: true, removed_album_id: "album-1" } );
+    useLibraryStore.setState( {
+      albums: [
+        {
+          id: "album-1",
+          title: "Album One",
+          path: "C:/albums/album-1.zip",
+          image_count: 3,
+          cover_index: 0,
+          imported_at: "1761847142",
+          last_opened_at: null,
+        },
+      ],
+    } );
+
+    const deleted = await useLibraryStore.getState().deleteAlbum( "album-1" );
+    expect( deleted ).toBe( true );
+    expect( deleteAlbumMock ).toHaveBeenCalledWith( { album_id: "album-1" } );
+  } );
+
+  it( "keeps import_album command path through existing store action", async () => {
+    importAlbumMock.mockResolvedValue( {
+      album: {
+        id: "album-shortcut",
+        title: "album-shortcut",
+        path: "C:/albums/album-shortcut.zip",
+        image_count: 2,
+        cover_index: 0,
+        imported_at: "1761847142",
+        last_opened_at: null,
+      },
+    } );
+
+    const imported = await useLibraryStore.getState().importAlbum( "C:/albums/album-shortcut.zip" );
+    expect( imported ).toBe( true );
+    expect( importAlbumMock ).toHaveBeenCalledWith( { zip_path: "C:/albums/album-shortcut.zip" } );
+  } );
+} );

@@ -4,11 +4,17 @@ interface AlbumCardProps {
   album: AlbumSummary;
   onDelete: (albumId: string) => void;
   onOpen: (albumId: string) => void;
+  onSelect?: (albumId: string) => void;
 }
 
-function AlbumCard({ album, onDelete, onOpen }: AlbumCardProps) {
+function AlbumCard({ album, onDelete, onOpen, onSelect }: AlbumCardProps) {
   return (
-    <article className="album-card">
+    <article
+      className="album-card"
+      tabIndex={0}
+      onClick={() => onSelect?.(album.id)}
+      onFocus={() => onSelect?.(album.id)}
+    >
       <div className="album-cover" aria-label={`Cover for ${album.title}`}>
         <img
           src={album.cover_data ?? "/vite.svg"}

@@ -125,3 +125,10 @@ Keyboard actions reuse existing errors and mapping strategy:
 - ZIP operations must remain in Rust `ZipService`.
 - Viewer image loading remains lazy; no full-album preload.
 - No new database and no album-content duplication.
+
+## Command Reference Validation Notes
+
+- Viewer navigation shortcuts (`ArrowLeft`, `ArrowRight`, `Home`, `End`) must route through existing `goToImage` -> `load_album_image` flow.
+- Import shortcut (`Ctrl+O`) must route through existing dialog selection and `import_album` command.
+- Delete shortcut (`Delete`) must route through existing confirmation and `delete_album` command.
+- Fullscreen shortcuts (`F`, `Escape`) remain frontend window actions and must not introduce new backend commands.
