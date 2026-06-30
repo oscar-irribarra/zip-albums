@@ -48,6 +48,12 @@ impl FileSystemService {
     pub fn canonicalize_path(path: &Path) -> std::io::Result<PathBuf> {
         fs::canonicalize(path)
     }
+
+    pub fn resolve_album_zip_path(path_text: &str) -> std::io::Result<PathBuf> {
+        let path = PathBuf::from(path_text);
+        Self::ensure_zip_file(&path)?;
+        Self::canonicalize_path(&path)
+    }
 }
 
 #[cfg(test)]
@@ -86,5 +92,17 @@ mod tests {
 
         let result = FileSystemService::ensure_zip_file(&file_path);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn resolves_and_canonicalizes_album_zip_path() {
+        let dir = unique_temp_dir();
+        fs::create_dir_all(&dir).unwrap();
+        let file_path = dir.join("album.zip");
+        fs::write(&file_path, b"zip").unwrap();
+
+        let resolved =
+            FileSystemService::resolve_album_zip_path(file_path.to_str().unwrap()).unwrap();
+        assert!(resolved.ends_with("album.zip"));
     }
 }

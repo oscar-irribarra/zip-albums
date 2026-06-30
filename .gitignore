@@ -9,12 +9,15 @@ lerna-debug.log*
 
 node_modules
 dist
+build
 dist-ssr
 *.local
 .env*
 coverage/
 src-tauri/target/
 target/
+debug/
+release/
 *.tmp
 
 # Editor directories and files
@@ -22,6 +25,7 @@ target/
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj

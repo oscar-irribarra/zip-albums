@@ -14,12 +14,12 @@
 
 ### Infrastructure
 
-- [ ] T001 Add viewer shared request/response/error TypeScript models in src/shared/types/library.ts
-- [ ] T002 Align viewer command contract examples with planned payloads in specs/003-album-viewer/contracts/album-viewer-commands.md
+- [x] T001 Add viewer shared request/response/error TypeScript models in src/shared/types/library.ts
+- [x] T002 Align viewer command contract examples with planned payloads in specs/003-album-viewer/contracts/album-viewer-commands.md
 
 ### Testing
 
-- [ ] T003 Add phase-based validation checklist entries for viewer scenarios in specs/003-album-viewer/quickstart.md
+- [x] T003 Add phase-based validation checklist entries for viewer scenarios in specs/003-album-viewer/quickstart.md
 
 **Checkpoint**: Repository remains runnable with no feature behavior change.
 
@@ -33,25 +33,25 @@
 
 ### Infrastructure
 
-- [ ] T004 Extend path canonicalization and album ZIP lookup helpers in src-tauri/src/services/file_system_service.rs
-- [ ] T005 Add reading progress metadata helper functions in src-tauri/src/services/metadata_service.rs
+- [x] T004 Extend path canonicalization and album ZIP lookup helpers in src-tauri/src/services/file_system_service.rs
+- [x] T005 Add reading progress metadata helper functions in src-tauri/src/services/metadata_service.rs
 
 ### Backend (Rust)
 
-- [ ] T006 Define viewer command DTOs and typed error enums in src-tauri/src/lib.rs
-- [ ] T007 Register viewer commands (`open_album_viewer`, `load_album_image`, `save_reading_progress`) in src-tauri/src/lib.rs
+- [x] T006 Define viewer command DTOs and typed error enums in src-tauri/src/lib.rs
+- [x] T007 Register viewer commands (`open_album_viewer`, `load_album_image`, `save_reading_progress`) in src-tauri/src/lib.rs
 
 ### Integration
 
-- [ ] T008 Add frontend invoke wrapper utilities for viewer commands in src/infrastructure/tauri.ts
+- [x] T008 Add frontend invoke wrapper utilities for viewer commands in src/infrastructure/tauri.ts
 
 ### Testing
 
-- [ ] T009 Add foundational Rust unit tests for metadata progress helper behavior in src-tauri/src/services/metadata_service.rs
+- [x] T009 Add foundational Rust unit tests for metadata progress helper behavior in src-tauri/src/services/metadata_service.rs
 
 ### Validation
 
-- [ ] T010 Validate foundational backend compilation from src-tauri/Cargo.toml
+- [x] T010 Validate foundational backend compilation from src-tauri/Cargo.toml
 
 **Checkpoint**: Foundational primitives are in place and the app stays runnable.
 
@@ -65,31 +65,31 @@
 
 ### Testing (US1)
 
-- [ ] T011 [P] [US1] Add Rust unit test for `load_image_by_index` happy path in src-tauri/src/services/zip_service.rs
-- [ ] T012 [P] [US1] Add Rust unit test for out-of-range image index handling in src-tauri/src/services/zip_service.rs
-- [ ] T013 [P] [US1] Add frontend store test for open-from-cover state in src/features/library/store/libraryStore.test.ts
+- [x] T011 [P] [US1] Add Rust unit test for `load_image_by_index` happy path in src-tauri/src/services/zip_service.rs
+- [x] T012 [P] [US1] Add Rust unit test for out-of-range image index handling in src-tauri/src/services/zip_service.rs
+- [x] T013 [P] [US1] Add frontend store test for open-from-cover state in src/features/library/store/libraryStore.test.ts
 
 ### Backend (Rust) (US1)
 
-- [ ] T014 [US1] Implement `open_album_viewer` cover-start orchestration with metadata lookup in src-tauri/src/lib.rs
-- [ ] T015 [US1] Implement `load_album_image` command to return a single visible image payload in src-tauri/src/lib.rs
-- [ ] T016 [US1] Implement ZIP image-by-index loading with supported-type validation in src-tauri/src/services/zip_service.rs
+- [x] T014 [US1] Implement `open_album_viewer` cover-start orchestration with metadata lookup in src-tauri/src/lib.rs
+- [x] T015 [US1] Implement `load_album_image` command to return a single visible image payload in src-tauri/src/lib.rs
+- [x] T016 [US1] Implement ZIP image-by-index loading with supported-type validation in src-tauri/src/services/zip_service.rs
 
 ### Frontend (React) (US1)
 
-- [ ] T017 [US1] Add viewer session/image/loading/error state and open/load actions in src/features/library/store/libraryStore.ts
-- [ ] T018 [US1] Add album-open action wiring from cards to viewer flow in src/features/library/components/AlbumCard.tsx
-- [ ] T019 [US1] Render viewer header (album name + counter) and current image area in src/features/library/components/LibraryView.tsx
+- [x] T017 [US1] Add viewer session/image/loading/error state and open/load actions in src/features/library/store/libraryStore.ts
+- [x] T018 [US1] Add album-open action wiring from cards to viewer flow in src/features/library/components/AlbumCard.tsx
+- [x] T019 [US1] Render viewer header (album name + counter) and current image area in src/features/library/components/LibraryView.tsx
 
 ### Integration (US1)
 
-- [ ] T020 [US1] Wire store actions to Tauri invoke wrappers for open/load commands in src/features/library/store/libraryStore.ts
+- [x] T020 [US1] Wire store actions to Tauri invoke wrappers for open/load commands in src/features/library/store/libraryStore.ts
 
 ### Testing and Validation (US1)
 
-- [ ] T021 [US1] Add component test for header context and cover-start rendering in src/features/library/components/LibraryView.test.tsx
-- [ ] T022 [US1] Execute quickstart scenario 1 and record outcome in specs/003-album-viewer/quickstart.md
-- [ ] T023 [US1] Execute quickstart scenario 4 (lazy loading) and record outcome in specs/003-album-viewer/quickstart.md
+- [x] T021 [US1] Add component test for header context and cover-start rendering in src/features/library/components/LibraryView.test.tsx
+- [x] T022 [US1] Execute quickstart scenario 1 and record outcome in specs/003-album-viewer/quickstart.md
+- [x] T023 [US1] Execute quickstart scenario 4 (lazy loading) and record outcome in specs/003-album-viewer/quickstart.md
 
 **Checkpoint**: MVP is independently functional and app remains runnable.
 
@@ -103,30 +103,30 @@
 
 ### Testing (US2)
 
-- [ ] T024 [P] [US2] Add Rust unit test for progress save and restore behavior in src-tauri/src/services/metadata_service.rs
-- [ ] T025 [P] [US2] Add Rust unit test for invalid-progress fallback to cover in src-tauri/src/lib.rs
-- [ ] T026 [P] [US2] Add frontend store test for per-album progress isolation in src/features/library/store/libraryStore.test.ts
+- [x] T024 [P] [US2] Add Rust unit test for progress save and restore behavior in src-tauri/src/services/metadata_service.rs
+- [x] T025 [P] [US2] Add Rust unit test for invalid-progress fallback to cover in src-tauri/src/lib.rs
+- [x] T026 [P] [US2] Add frontend store test for per-album progress isolation in src/features/library/store/libraryStore.test.ts
 
 ### Backend (Rust) (US2)
 
-- [ ] T027 [US2] Implement `save_reading_progress` command with album validation in src-tauri/src/lib.rs
-- [ ] T028 [US2] Add progress restore fallback logic to `open_album_viewer` in src-tauri/src/lib.rs
+- [x] T027 [US2] Implement `save_reading_progress` command with album validation in src-tauri/src/lib.rs
+- [x] T028 [US2] Add progress restore fallback logic to `open_album_viewer` in src-tauri/src/lib.rs
 
 ### Frontend (React) (US2)
 
-- [ ] T029 [US2] Persist progress on successful navigation and viewer close in src/features/library/store/libraryStore.ts
-- [ ] T030 [US2] Apply restored start index on reopen and sync counter state in src/features/library/components/LibraryView.tsx
+- [x] T029 [US2] Persist progress on successful navigation and viewer close in src/features/library/store/libraryStore.ts
+- [x] T030 [US2] Apply restored start index on reopen and sync counter state in src/features/library/components/LibraryView.tsx
 
 ### Integration (US2)
 
-- [ ] T031 [US2] Wire save-progress invoke flow to store navigation lifecycle in src/features/library/store/libraryStore.ts
+- [x] T031 [US2] Wire save-progress invoke flow to store navigation lifecycle in src/features/library/store/libraryStore.ts
 
 ### Testing and Validation (US2)
 
-- [ ] T032 [US2] Add component test for resume-on-reopen behavior in src/features/library/components/LibraryView.test.tsx
-- [ ] T033 [US2] Execute quickstart scenario 2 and record outcome in specs/003-album-viewer/quickstart.md
-- [ ] T034 [US2] Execute quickstart scenario 3 and record outcome in specs/003-album-viewer/quickstart.md
-- [ ] T035 [US2] Execute quickstart scenario 5 and record outcome in specs/003-album-viewer/quickstart.md
+- [x] T032 [US2] Add component test for resume-on-reopen behavior in src/features/library/components/LibraryView.test.tsx
+- [x] T033 [US2] Execute quickstart scenario 2 and record outcome in specs/003-album-viewer/quickstart.md
+- [x] T034 [US2] Execute quickstart scenario 3 and record outcome in specs/003-album-viewer/quickstart.md
+- [x] T035 [US2] Execute quickstart scenario 5 and record outcome in specs/003-album-viewer/quickstart.md
 
 **Checkpoint**: US1 and US2 work independently and app remains runnable.
 
@@ -138,17 +138,17 @@
 
 ### Infrastructure
 
-- [ ] T036 [P] Align final command error codes/messages with implemented behavior in specs/003-album-viewer/contracts/album-viewer-commands.md
+- [x] T036 [P] Align final command error codes/messages with implemented behavior in specs/003-album-viewer/contracts/album-viewer-commands.md
 
 ### Integration
 
-- [ ] T037 [P] Update implementation notes and runnable checkpoints in specs/003-album-viewer/plan.md
+- [x] T037 [P] Update implementation notes and runnable checkpoints in specs/003-album-viewer/plan.md
 
 ### Testing and Validation
 
-- [ ] T038 Run frontend test suite covering viewer feature from src/features/library/components/LibraryView.test.tsx
-- [ ] T039 Run Rust test suite covering viewer services from src-tauri/Cargo.toml
-- [ ] T040 Run full quickstart validation and mark final pass criteria in specs/003-album-viewer/quickstart.md
+- [x] T038 Run frontend test suite covering viewer feature from src/features/library/components/LibraryView.test.tsx
+- [x] T039 Run Rust test suite covering viewer services from src-tauri/Cargo.toml
+- [x] T040 Run full quickstart validation and mark final pass criteria in specs/003-album-viewer/quickstart.md
 
 ---
 
@@ -209,3 +209,4 @@
 ### Runnable State Rule
 
 Each task is scoped to a single implementation goal and ordered so the application remains runnable after completion. Validation tasks at each phase checkpoint confirm no regression before moving forward.
+

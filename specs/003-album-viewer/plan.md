@@ -276,3 +276,18 @@ These items are intentionally deferred to keep current implementation focused an
 ## Complexity Tracking
 
 No constitution violations or complexity exceptions required.
+
+## Implementation Notes
+
+- Frontend invoke wrappers were added in `src/infrastructure/tauri.ts` and consumed by the library store.
+- Viewer state was integrated into `src/features/library/store/libraryStore.ts` with open/load/close actions.
+- Viewer UI was integrated in `src/features/library/components/LibraryView.tsx` with album header, counter, and prev/next navigation.
+- Backend commands `open_album_viewer`, `load_album_image`, and `save_reading_progress` were implemented in `src-tauri/src/lib.rs`.
+- ZIP single-image lazy loading was implemented in `src-tauri/src/services/zip_service.rs`.
+- Reading progress persistence was implemented in `src-tauri/src/services/metadata_service.rs`.
+
+## Runnable Checkpoints
+
+- Rust tests pass via `cargo test` in `src-tauri/`.
+- Frontend tests pass via `pnpm test` in repository root.
+- No database was introduced and ZIP content duplication remains disabled.

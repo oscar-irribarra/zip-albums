@@ -42,3 +42,59 @@ export interface ImportAlbumError {
   message: string;
   details?: string;
 }
+
+export interface OpenAlbumViewerRequest {
+  album_id: string;
+}
+
+export interface OpenAlbumViewerResponse {
+  album_id: string;
+  album_name: string;
+  total_images: number;
+  start_index: number;
+}
+
+export interface LoadAlbumImageRequest {
+  album_id: string;
+  image_index: number;
+}
+
+export interface LoadAlbumImageResponse {
+  album_id: string;
+  image_index: number;
+  image_source: string;
+  mime_type: string;
+}
+
+export interface SaveReadingProgressRequest {
+  album_id: string;
+  last_image_index: number;
+}
+
+export interface SaveReadingProgressResponse {
+  saved: boolean;
+  updated_at: string;
+}
+
+export type ViewerErrorCode =
+  | "ALBUM_NOT_FOUND"
+  | "IMAGE_INDEX_OUT_OF_RANGE"
+  | "ZIP_READ_FAILURE"
+  | "UNSUPPORTED_IMAGE"
+  | "PROGRESS_READ_FAILURE"
+  | "PROGRESS_WRITE_FAILURE"
+  | "IO_FAILURE";
+
+export interface ViewerCommandError {
+  code: ViewerErrorCode;
+  message: string;
+  details?: string;
+}
+
+export interface AlbumViewSession {
+  album_id: string;
+  album_name: string;
+  total_images: number;
+  current_index: number;
+  started_at: string;
+}

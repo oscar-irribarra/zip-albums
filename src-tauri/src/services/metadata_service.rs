@@ -18,6 +18,15 @@ pub struct AlbumMetadata {
 pub struct AlbumCatalog {
     pub version: u32,
     pub albums: Vec<AlbumMetadata>,
+    #[serde(default)]
+    pub reading_progress: Vec<ReadingProgress>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ReadingProgress {
+    pub album_id: String,
+    pub last_image_index: usize,
+    pub updated_at: String,
 }
 
 impl Default for AlbumCatalog {
@@ -25,6 +34,7 @@ impl Default for AlbumCatalog {
         Self {
             version: 1,
             albums: Vec::new(),
+            reading_progress: Vec::new(),
         }
     }
 }
@@ -70,6 +80,53 @@ impl MetadataService {
         catalog.albums.push(album);
         Self::save_catalog(path, &catalog)?;
         Ok(catalog)
+    }
+
+    pub fn get_reading_progress(catalog: &AlbumCatalog, album_id: &str) -> Option<ReadingProgress> {
+        catalog
+            .reading_progress
+            .iter()
+            .find(|entry| entry.album_id == album_id)
+            .cloned()
+    }
+
+    pub fn save_reading_progress(
+        path: &Path,
+        album_id: &str,
+        last_image_index: usize,
+    ) -> std::io::Result<ReadingProgress> {
+        let mut catalog = Self::load_catalog(path)?;
+        let updated_at = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs()
+            .to_string();
+
+        if let Some(existing) = catalog
+            .reading_progress
+            .iter_mut()
+            .find(|entry| entry.album_id == album_id)
+        {
+            existing.last_image_index = last_image_index;
+            existing.updated_at = updated_at;
+        } else {
+            catalog.reading_progress.push(ReadingProgress {
+                album_id: album_id.to_string(),
+                last_image_index,
+                updated_at,
+            });
+        }
+
+        Self::save_catalog(path, &catalog)?;
+
+        catalog
+            .reading_progress
+            .iter()
+            .find(|entry| entry.album_id == album_id)
+            .cloned()
+            .ok_or_else(|| {
+                std::io::Error::new(std::io::ErrorKind::Other, "Failed to save reading progress")
+            })
     }
 }
 
@@ -147,5 +204,26 @@ mod tests {
         let updated = MetadataService::add_album(&path, album).unwrap();
         assert_eq!(updated.albums.len(), 1);
         assert_eq!(updated.albums[0].id, "album-2");
+    }
+
+    #[test]
+    fn saves_and_restores_progress_entry() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-metadata-test-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = fs::create_dir_all(&temp_dir);
+        let path = temp_dir.join("albums_catalog.json");
+
+        let saved = MetadataService::save_reading_progress(&path, "album-1", 5).unwrap();
+        assert_eq!(saved.album_id, "album-1");
+        assert_eq!(saved.last_image_index, 5);
+
+        let catalog = MetadataService::load_catalog(&path).unwrap();
+        let restored = MetadataService::get_reading_progress(&catalog, "album-1").unwrap();
+        assert_eq!(restored.last_image_index, 5);
     }
 }

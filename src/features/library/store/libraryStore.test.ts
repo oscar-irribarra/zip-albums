@@ -1,26 +1,45 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useLibraryStore } from "./libraryStore";
 
-const invokeMock = vi.fn();
+const getLibraryMock = vi.fn();
+const deleteAlbumMock = vi.fn();
+const importAlbumMock = vi.fn();
+const openAlbumViewerMock = vi.fn();
+const loadAlbumImageMock = vi.fn();
+const saveReadingProgressMock = vi.fn();
 
-vi.mock( "@tauri-apps/api/core", () => ( {
-  invoke: ( ...args: unknown[] ) => invokeMock( ...args ),
+vi.mock( "../../../infrastructure/tauri", () => ( {
+  getLibrary: ( ...args: unknown[] ) => getLibraryMock( ...args ),
+  deleteAlbum: ( ...args: unknown[] ) => deleteAlbumMock( ...args ),
+  importAlbum: ( ...args: unknown[] ) => importAlbumMock( ...args ),
+  openAlbumViewer: ( ...args: unknown[] ) => openAlbumViewerMock( ...args ),
+  loadAlbumImage: ( ...args: unknown[] ) => loadAlbumImageMock( ...args ),
+  saveReadingProgress: ( ...args: unknown[] ) => saveReadingProgressMock( ...args ),
 } ) );
 
 describe( "libraryStore importAlbum", () => {
   beforeEach( () => {
-    invokeMock.mockReset();
+    getLibraryMock.mockReset();
+    deleteAlbumMock.mockReset();
+    importAlbumMock.mockReset();
+    openAlbumViewerMock.mockReset();
+    loadAlbumImageMock.mockReset();
+    saveReadingProgressMock.mockReset();
     useLibraryStore.setState( {
       albums: [],
       sortOrder: "name",
       loading: false,
       importing: false,
       error: null,
+      viewerSession: null,
+      viewerImage: null,
+      viewerLoading: false,
+      viewerError: null,
     } );
   } );
 
   it( "inserts imported album immediately on success", async () => {
-    invokeMock.mockResolvedValue( {
+    importAlbumMock.mockResolvedValue( {
       album: {
         id: "new-album",
         title: "new-album",
@@ -55,7 +74,7 @@ describe( "libraryStore importAlbum", () => {
       ],
     } );
 
-    invokeMock.mockRejectedValue( { code: "NO_SUPPORTED_IMAGES" } );
+    importAlbumMock.mockRejectedValue( { code: "NO_SUPPORTED_IMAGES" } );
 
     const result = await useLibraryStore.getState().importAlbum( "C:/albums/invalid.zip" );
 
@@ -63,5 +82,60 @@ describe( "libraryStore importAlbum", () => {
     expect( useLibraryStore.getState().albums ).toHaveLength( 1 );
     expect( useLibraryStore.getState().albums[0].id ).toBe( "existing" );
     expect( useLibraryStore.getState().error ).toBe( "No supported images were found in this ZIP." );
+  } );
+
+  it( "opens viewer from cover and loads visible image", async () => {
+    openAlbumViewerMock.mockResolvedValue( {
+      album_id: "album-1",
+      album_name: "Album One",
+      total_images: 4,
+      start_index: 0,
+    } );
+    loadAlbumImageMock.mockResolvedValue( {
+      album_id: "album-1",
+      image_index: 0,
+      image_source: "data:image/png;base64,ZmFrZQ==",
+      mime_type: "image/png",
+    } );
+
+    const result = await useLibraryStore.getState().openAlbumViewer( "album-1" );
+
+    expect( result ).toBe( true );
+    expect( useLibraryStore.getState().viewerSession?.current_index ).toBe( 0 );
+    expect( useLibraryStore.getState().viewerImage?.image_index ).toBe( 0 );
+  } );
+
+  it( "keeps per-album progress writes scoped to active viewer album", async () => {
+    openAlbumViewerMock.mockResolvedValue( {
+      album_id: "album-a",
+      album_name: "Album A",
+      total_images: 3,
+      start_index: 0,
+    } );
+    loadAlbumImageMock.mockResolvedValue( {
+      album_id: "album-a",
+      image_index: 0,
+      image_source: "data:image/png;base64,ZmFrZQ==",
+      mime_type: "image/png",
+    } );
+    saveReadingProgressMock.mockResolvedValue( {
+      saved: true,
+      updated_at: "2026-06-30T00:00:00Z",
+    } );
+
+    await useLibraryStore.getState().openAlbumViewer( "album-a" );
+
+    loadAlbumImageMock.mockResolvedValueOnce( {
+      album_id: "album-a",
+      image_index: 1,
+      image_source: "data:image/png;base64,ZmFrZQ==",
+      mime_type: "image/png",
+    } );
+    await useLibraryStore.getState().loadViewerImage( 1 );
+
+    expect( saveReadingProgressMock ).toHaveBeenCalledWith( {
+      album_id: "album-a",
+      last_image_index: 1,
+    } );
   } );
 } );

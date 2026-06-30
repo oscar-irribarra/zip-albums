@@ -1,6 +1,8 @@
 use std::fs::File;
-use std::io;
+use std::io::{self, Read};
 use std::path::Path;
+
+use base64::Engine;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ZipInspectionError {
@@ -10,9 +12,36 @@ pub enum ZipInspectionError {
     Io,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ZipImageLoadError {
+    IndexOutOfRange,
+    Corrupted,
+    UnsupportedImage,
+    Io,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LoadedImage {
+    pub image_source: String,
+    pub mime_type: String,
+}
+
 pub struct ZipService;
 
 impl ZipService {
+    fn supported_image_mime(name: &str) -> Option<&'static str> {
+        let lowered = name.to_lowercase();
+        if lowered.ends_with(".png") {
+            Some("image/png")
+        } else if lowered.ends_with(".jpg") || lowered.ends_with(".jpeg") {
+            Some("image/jpeg")
+        } else if lowered.ends_with(".webp") {
+            Some("image/webp")
+        } else {
+            None
+        }
+    }
+
     pub fn inspect_album(path: &Path) -> io::Result<AlbumInspection> {
         match Self::inspect_album_checked(path) {
             Ok(inspection) => Ok(inspection),
@@ -46,13 +75,9 @@ impl ZipService {
         let image_entries: Vec<_> = (0..archive.len())
             .filter_map(|index| {
                 let entry = archive.by_index(index).ok()?;
-                let name = entry.name().to_lowercase();
-                if name.ends_with(".png")
-                    || name.ends_with(".jpg")
-                    || name.ends_with(".jpeg")
-                    || name.ends_with(".webp")
-                {
-                    Some(name)
+                let name = entry.name().to_string();
+                if Self::supported_image_mime(&name).is_some() {
+                    Some(name.to_lowercase())
                 } else {
                     None
                 }
@@ -70,6 +95,46 @@ impl ZipService {
             image_count,
             cover_index,
             image_names: image_entries,
+        })
+    }
+
+    pub fn load_image_by_index(path: &Path, image_index: usize) -> Result<LoadedImage, ZipImageLoadError> {
+        let file = File::open(path).map_err(|_| ZipImageLoadError::Io)?;
+        let mut archive = zip::ZipArchive::new(file).map_err(|_| ZipImageLoadError::Corrupted)?;
+
+        let mut supported_entries: Vec<(usize, String, String)> = Vec::new();
+        for index in 0..archive.len() {
+            let entry = archive
+                .by_index(index)
+                .map_err(|_| ZipImageLoadError::Corrupted)?;
+            let name = entry.name().to_string();
+            if let Some(mime) = Self::supported_image_mime(&name) {
+                supported_entries.push((index, name, mime.to_string()));
+            }
+        }
+
+        if supported_entries.is_empty() {
+            return Err(ZipImageLoadError::UnsupportedImage);
+        }
+
+        if image_index >= supported_entries.len() {
+            return Err(ZipImageLoadError::IndexOutOfRange);
+        }
+
+        let (entry_index, _entry_name, mime_type) = &supported_entries[image_index];
+        let mut entry = archive
+            .by_index(*entry_index)
+            .map_err(|_| ZipImageLoadError::Corrupted)?;
+
+        let mut bytes = Vec::new();
+        entry
+            .read_to_end(&mut bytes)
+            .map_err(|_| ZipImageLoadError::Io)?;
+
+        let encoded = base64::engine::general_purpose::STANDARD.encode(bytes);
+        Ok(LoadedImage {
+            image_source: format!("data:{};base64,{}", mime_type, encoded),
+            mime_type: mime_type.clone(),
         })
     }
 }
@@ -170,5 +235,52 @@ mod tests {
 
         let inspection = ZipService::inspect_album_checked(&archive_path);
         assert_eq!(inspection, Err(ZipInspectionError::Corrupted));
+    }
+
+    #[test]
+    fn loads_single_image_by_index() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-zip-test-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = std::fs::create_dir_all(&temp_dir);
+        let archive_path = temp_dir.join("viewer.zip");
+        let file = File::create(&archive_path).unwrap();
+        let mut zip = zip::ZipWriter::new(file);
+        let options = zip::write::FileOptions::default();
+        zip.start_file("first.png", options).unwrap();
+        zip.write_all(b"first-image").unwrap();
+        zip.start_file("second.jpg", options).unwrap();
+        zip.write_all(b"second-image").unwrap();
+        zip.finish().unwrap();
+
+        let loaded = ZipService::load_image_by_index(&archive_path, 1).unwrap();
+        assert_eq!(loaded.mime_type, "image/jpeg");
+        assert!(loaded.image_source.starts_with("data:image/jpeg;base64,"));
+    }
+
+    #[test]
+    fn returns_out_of_range_for_invalid_image_index() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-zip-test-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = std::fs::create_dir_all(&temp_dir);
+        let archive_path = temp_dir.join("viewer-range.zip");
+        let file = File::create(&archive_path).unwrap();
+        let mut zip = zip::ZipWriter::new(file);
+        let options = zip::write::FileOptions::default();
+        zip.start_file("first.png", options).unwrap();
+        zip.write_all(b"first-image").unwrap();
+        zip.finish().unwrap();
+
+        let loaded = ZipService::load_image_by_index(&archive_path, 4);
+        assert_eq!(loaded, Err(ZipImageLoadError::IndexOutOfRange));
     }
 }

@@ -14,6 +14,14 @@ pnpm run tauri dev
 
 ## Validation Scenarios
 
+## Phase Checklist
+
+- [x] Phase 1 setup artifacts are aligned (`contracts`, `types`, `quickstart`)
+- [x] Phase 2 foundational services and command registration compile
+- [x] Phase 3 US1 viewer open/header/counter/lazy image flow validated
+- [x] Phase 4 US2 progress save/restore/fallback flow validated
+- [x] Phase 5 regression suite completed
+
 ## 1) Open album from cover when no progress exists
 
 1. Ensure selected album has no saved progress.
@@ -74,3 +82,13 @@ Expected:
 - Command contract: [contracts/album-viewer-commands.md](contracts/album-viewer-commands.md)
 - Data model: [data-model.md](data-model.md)
 - Feature requirements: [spec.md](spec.md)
+
+## Execution Log
+
+- [x] Scenario 1 validated by automated tests (`openAlbumViewer` store test + `LibraryView` header/counter test)
+- [x] Scenario 2 validated by Rust command test (`open_album_viewer_restores_saved_progress`)
+- [x] Scenario 3 validated by Rust command test (`open_album_viewer_falls_back_to_cover_for_invalid_progress`)
+- [x] Scenario 4 validated by ZipService test (`loads_single_image_by_index`) and viewer command shape (single payload per request)
+- [x] Scenario 5 validated by store test (`keeps per-album progress writes scoped to active viewer album`)
+- [x] Frontend suite executed successfully via `pnpm test`
+- [x] Rust suite executed successfully via `cargo test`

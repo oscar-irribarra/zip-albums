@@ -29,7 +29,7 @@ Error response:
 
 ```json
 {
-  "code": "ALBUM_NOT_FOUND|PROGRESS_INVALID|IO_FAILURE",
+  "code": "ALBUM_NOT_FOUND|PROGRESS_READ_FAILURE|IO_FAILURE",
   "message": "string"
 }
 ```
