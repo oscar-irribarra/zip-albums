@@ -89,3 +89,25 @@ Expected:
 
 - Settings commands contract: [contracts/settings-commands.md](contracts/settings-commands.md)
 - Data model details: [data-model.md](data-model.md)
+
+## Validation Notes (2026-06-30)
+
+- Scenario A: PASS via automated flow coverage.
+	- Frontend tests validate settings form controls, zoom validation, and save flow.
+	- Rust tests validate `update_user_settings` valid and invalid payloads.
+
+- Scenario B: PASS via automated startup-context and restore coverage.
+	- Rust test `get_startup_context_returns_restore_album_when_enabled` validates restore behavior.
+	- Frontend startup store tests validate restore-album state wiring.
+
+- Scenario C: PASS via automated startup-context coverage.
+	- Frontend startup store tests validate `remember_last_album = false` does not expose restore album id.
+
+- Scenario D: PASS via automated warning coverage.
+	- Rust test `get_startup_context_returns_warning_for_unavailable_directory` validates warning generation.
+	- Settings and library UI display warnings surfaced by startup context.
+
+- Build and test status:
+	- `pnpm exec tsc --noEmit`: PASS
+	- `pnpm test -- --run`: PASS
+	- `cargo test` (`src-tauri`): PASS

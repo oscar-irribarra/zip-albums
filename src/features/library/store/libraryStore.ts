@@ -5,6 +5,7 @@ import {
   importAlbum as importAlbumCommand,
   loadAlbumImage as loadAlbumImageCommand,
   openAlbumViewer as openAlbumViewerCommand,
+  setLastOpenedAlbum as setLastOpenedAlbumCommand,
   saveReadingProgress as saveReadingProgressCommand,
 } from "../../../infrastructure/tauri";
 import type {
@@ -30,7 +31,7 @@ interface LibraryState {
   loadLibrary: () => Promise<void>;
   deleteAlbum: ( albumId: string ) => Promise<boolean>;
   importAlbum: ( zipPath: string ) => Promise<boolean>;
-  openAlbumViewer: ( albumId: string ) => Promise<boolean>;
+  openAlbumViewer: ( albumId: string, rememberLastAlbum?: boolean ) => Promise<boolean>;
   goToImage: ( imageIndex: number ) => Promise<boolean>;
   loadViewerImage: ( imageIndex: number ) => Promise<boolean>;
   loadThumbnailImage: ( imageIndex: number ) => Promise<LoadAlbumImageResponse | null>;
@@ -146,7 +147,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
     }
   },
 
-  openAlbumViewer: async ( albumId: string ) => {
+  openAlbumViewer: async ( albumId: string, rememberLastAlbum = false ) => {
     const requestId = ++navigationRequestId;
     set( { viewerLoading: true, viewerError: null } );
     try {
@@ -176,6 +177,15 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
           [buildThumbnailKey( response.album_id, response.start_index )]: image,
         },
       } );
+
+      if ( rememberLastAlbum ) {
+        try {
+          await setLastOpenedAlbumCommand( { album_id: response.album_id } );
+        } catch {
+          // Last-opened tracking is best effort and should not block viewer open.
+        }
+      }
+
       return true;
     } catch ( error ) {
       if ( requestId !== navigationRequestId ) {

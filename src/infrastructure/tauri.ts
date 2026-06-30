@@ -9,6 +9,11 @@ import type {
   OpenAlbumViewerResponse,
   SaveReadingProgressRequest,
   SaveReadingProgressResponse,
+  SetLastOpenedAlbumRequest,
+  SetLastOpenedAlbumResponse,
+  StartupContextResponse,
+  UpdateUserSettingsRequest,
+  UpdateUserSettingsResponse,
 } from "../shared/types/library";
 
 export function getLibrary() {
@@ -33,4 +38,16 @@ export function loadAlbumImage( payload: LoadAlbumImageRequest ) {
 
 export function saveReadingProgress( payload: SaveReadingProgressRequest ) {
   return invoke<SaveReadingProgressResponse>( "save_reading_progress", { payload } );
+}
+
+export function getStartupContext() {
+  return invoke<StartupContextResponse>( "get_startup_context" );
+}
+
+export function updateUserSettings( payload: UpdateUserSettingsRequest ) {
+  return invoke<UpdateUserSettingsResponse>( "update_user_settings", { payload } );
+}
+
+export function setLastOpenedAlbum( payload: SetLastOpenedAlbumRequest ) {
+  return invoke<SetLastOpenedAlbumResponse>( "set_last_opened_album", { payload } );
 }

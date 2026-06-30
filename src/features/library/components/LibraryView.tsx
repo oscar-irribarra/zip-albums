@@ -5,7 +5,12 @@ import AlbumCard from "./AlbumCard";
 import ThumbnailStrip from "./ThumbnailStrip";
 import type { SortOrder } from "../../../shared/types/library";
 
-function LibraryView() {
+interface LibraryViewProps {
+  startupWarnings?: string[];
+  rememberLastAlbum?: boolean;
+}
+
+function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: LibraryViewProps ) {
   const {
     albums,
     sortOrder,
@@ -104,7 +109,7 @@ function LibraryView() {
   };
 
   const handleOpen = async (albumId: string) => {
-    await openAlbumViewer(albumId);
+    await openAlbumViewer(albumId, rememberLastAlbum);
   };
 
   const handlePrevious = async () => {
@@ -152,6 +157,9 @@ function LibraryView() {
       {loading && <p>Loading albums...</p>}
       {error && <p className="error-message">{error}</p>}
       {viewerError && <p className="error-message">{viewerError}</p>}
+      {startupWarnings.map( ( warning ) => (
+        <p key={warning} className="error-message">{warning}</p>
+      ) )}
 
       {viewerSession && (
         <section className="album-viewer" aria-label="Album viewer">

@@ -4,6 +4,29 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct UserSettings {
+    pub theme: String,
+    pub albums_directory: Option<String>,
+    pub fullscreen: bool,
+    pub remember_last_album: bool,
+    pub initial_zoom: f64,
+    pub updated_at: String,
+}
+
+impl Default for UserSettings {
+    fn default() -> Self {
+        Self {
+            theme: "system".to_string(),
+            albums_directory: None,
+            fullscreen: false,
+            remember_last_album: false,
+            initial_zoom: 1.0,
+            updated_at: "0".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct AlbumMetadata {
     pub id: String,
     pub title: String,
@@ -20,6 +43,10 @@ pub struct AlbumCatalog {
     pub albums: Vec<AlbumMetadata>,
     #[serde(default)]
     pub reading_progress: Vec<ReadingProgress>,
+    #[serde(default)]
+    pub settings: UserSettings,
+    #[serde(default)]
+    pub last_opened_album_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -35,6 +62,8 @@ impl Default for AlbumCatalog {
             version: 1,
             albums: Vec::new(),
             reading_progress: Vec::new(),
+            settings: UserSettings::default(),
+            last_opened_album_id: None,
         }
     }
 }
@@ -127,6 +156,29 @@ impl MetadataService {
             .ok_or_else(|| {
                 std::io::Error::new(std::io::ErrorKind::Other, "Failed to save reading progress")
             })
+    }
+
+    pub fn get_settings(catalog: &AlbumCatalog) -> UserSettings {
+        catalog.settings.clone()
+    }
+
+    pub fn save_settings(path: &Path, settings: UserSettings) -> std::io::Result<UserSettings> {
+        let mut catalog = Self::load_catalog(path)?;
+        catalog.settings = settings;
+        Self::save_catalog(path, &catalog)?;
+        Ok(catalog.settings)
+    }
+
+    pub fn set_last_opened_album(path: &Path, album_id: Option<String>) -> std::io::Result<String> {
+        let mut catalog = Self::load_catalog(path)?;
+        catalog.last_opened_album_id = album_id;
+        let updated_at = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs()
+            .to_string();
+        Self::save_catalog(path, &catalog)?;
+        Ok(updated_at)
     }
 }
 
@@ -225,5 +277,60 @@ mod tests {
         let catalog = MetadataService::load_catalog(&path).unwrap();
         let restored = MetadataService::get_reading_progress(&catalog, "album-1").unwrap();
         assert_eq!(restored.last_image_index, 5);
+    }
+
+    #[test]
+    fn loads_default_settings_when_missing() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-metadata-test-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = fs::create_dir_all(&temp_dir);
+        let path = temp_dir.join("albums_catalog.json");
+
+        let settings =
+            MetadataService::get_settings(&MetadataService::load_catalog(&path).unwrap());
+        assert_eq!(settings.theme, "system");
+        assert_eq!(settings.initial_zoom, 1.0);
+        assert!(!settings.remember_last_album);
+    }
+
+    #[test]
+    fn saves_settings_roundtrip() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-metadata-test-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = fs::create_dir_all(&temp_dir);
+        let path = temp_dir.join("albums_catalog.json");
+
+        let saved = MetadataService::save_settings(
+            &path,
+            UserSettings {
+                theme: "dark".to_string(),
+                albums_directory: Some("C:/albums".to_string()),
+                fullscreen: true,
+                remember_last_album: true,
+                initial_zoom: 1.25,
+                updated_at: "1".to_string(),
+            },
+        )
+        .unwrap();
+
+        assert_eq!(saved.theme, "dark");
+        assert_eq!(saved.initial_zoom, 1.25);
+
+        let catalog = MetadataService::load_catalog(&path).unwrap();
+        assert_eq!(catalog.settings.theme, "dark");
+        assert_eq!(
+            catalog.settings.albums_directory.as_deref(),
+            Some("C:/albums")
+        );
     }
 }

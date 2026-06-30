@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use services::{
     file_system_service::FileSystemService,
-    metadata_service::{AlbumMetadata, MetadataService},
+    metadata_service::{AlbumMetadata, MetadataService, UserSettings},
     zip_service::{ZipImageLoadError, ZipInspectionError, ZipService},
 };
 
@@ -93,8 +93,47 @@ pub struct SaveReadingProgressResponse {
     pub updated_at: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct UpdateUserSettingsRequest {
+    pub theme: String,
+    pub albums_directory: Option<String>,
+    pub fullscreen: bool,
+    pub remember_last_album: bool,
+    pub initial_zoom: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UpdateUserSettingsResponse {
+    pub settings: UserSettings,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StartupContextResponse {
+    pub settings: UserSettings,
+    pub restore_album_id: Option<String>,
+    pub warnings: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SetLastOpenedAlbumRequest {
+    pub album_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetLastOpenedAlbumResponse {
+    pub saved: bool,
+    pub updated_at: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ViewerCommandError {
+    pub code: String,
+    pub message: String,
+    pub details: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SettingsCommandError {
     pub code: String,
     pub message: String,
     pub details: Option<String>,
@@ -154,6 +193,56 @@ impl ViewerCommandError {
             code: "IO_FAILURE".to_string(),
             message: "A local file operation failed.".to_string(),
             details: Some(details.to_string()),
+        }
+    }
+}
+
+impl SettingsCommandError {
+    fn settings_read_failure(details: &str) -> Self {
+        Self {
+            code: "SETTINGS_READ_FAILURE".to_string(),
+            message: "Unable to read user settings from local metadata.".to_string(),
+            details: Some(details.to_string()),
+        }
+    }
+
+    fn settings_write_failure(details: &str) -> Self {
+        Self {
+            code: "SETTINGS_WRITE_FAILURE".to_string(),
+            message: "Unable to save user settings to local metadata.".to_string(),
+            details: Some(details.to_string()),
+        }
+    }
+
+    fn invalid_albums_directory(details: &str) -> Self {
+        Self {
+            code: "INVALID_ALBUMS_DIRECTORY".to_string(),
+            message: "Configured albums directory is not accessible.".to_string(),
+            details: Some(details.to_string()),
+        }
+    }
+
+    fn invalid_zoom_value() -> Self {
+        Self {
+            code: "INVALID_ZOOM_VALUE".to_string(),
+            message: "Initial zoom must be between 0.5 and 3.0.".to_string(),
+            details: None,
+        }
+    }
+
+    fn startup_context_failure(details: &str) -> Self {
+        Self {
+            code: "STARTUP_CONTEXT_FAILURE".to_string(),
+            message: "Unable to build startup settings context.".to_string(),
+            details: Some(details.to_string()),
+        }
+    }
+
+    fn album_not_found() -> Self {
+        Self {
+            code: "ALBUM_NOT_FOUND".to_string(),
+            message: "The requested album could not be found.".to_string(),
+            details: None,
         }
     }
 }
@@ -377,7 +466,8 @@ fn import_album(payload: ImportAlbumRequest) -> Result<ImportAlbumResponse, Impo
 fn open_album_viewer(
     payload: OpenAlbumViewerRequest,
 ) -> Result<OpenAlbumViewerResponse, ViewerCommandError> {
-    let base_dir = std::env::current_dir().map_err(|err| ViewerCommandError::io_failure(&err.to_string()))?;
+    let base_dir =
+        std::env::current_dir().map_err(|err| ViewerCommandError::io_failure(&err.to_string()))?;
     let album_dir = FileSystemService::resolve_album_directory(&base_dir)
         .map_err(|err| ViewerCommandError::io_failure(&err.to_string()))?;
     let catalog_path = MetadataService::catalog_path(&album_dir);
@@ -409,7 +499,8 @@ fn open_album_viewer(
 fn load_album_image(
     payload: LoadAlbumImageRequest,
 ) -> Result<LoadAlbumImageResponse, ViewerCommandError> {
-    let base_dir = std::env::current_dir().map_err(|err| ViewerCommandError::io_failure(&err.to_string()))?;
+    let base_dir =
+        std::env::current_dir().map_err(|err| ViewerCommandError::io_failure(&err.to_string()))?;
     let album_dir = FileSystemService::resolve_album_directory(&base_dir)
         .map_err(|err| ViewerCommandError::io_failure(&err.to_string()))?;
     let catalog_path = MetadataService::catalog_path(&album_dir);
@@ -425,14 +516,18 @@ fn load_album_image(
     let album_path = FileSystemService::resolve_album_zip_path(&album.path)
         .map_err(|err| ViewerCommandError::io_failure(&err.to_string()))?;
 
-    let image = ZipService::load_image_by_index(&album_path, payload.image_index).map_err(|err| {
-        match err {
+    let image = ZipService::load_image_by_index(&album_path, payload.image_index).map_err(
+        |err| match err {
             ZipImageLoadError::IndexOutOfRange => ViewerCommandError::image_index_out_of_range(),
-            ZipImageLoadError::Corrupted => ViewerCommandError::zip_read_failure("Archive read failure"),
+            ZipImageLoadError::Corrupted => {
+                ViewerCommandError::zip_read_failure("Archive read failure")
+            }
             ZipImageLoadError::UnsupportedImage => ViewerCommandError::unsupported_image(),
-            ZipImageLoadError::Io => ViewerCommandError::zip_read_failure("Unable to load requested image"),
-        }
-    })?;
+            ZipImageLoadError::Io => {
+                ViewerCommandError::zip_read_failure("Unable to load requested image")
+            }
+        },
+    )?;
 
     Ok(LoadAlbumImageResponse {
         album_id: payload.album_id,
@@ -446,14 +541,19 @@ fn load_album_image(
 fn save_reading_progress(
     payload: SaveReadingProgressRequest,
 ) -> Result<SaveReadingProgressResponse, ViewerCommandError> {
-    let base_dir = std::env::current_dir().map_err(|err| ViewerCommandError::io_failure(&err.to_string()))?;
+    let base_dir =
+        std::env::current_dir().map_err(|err| ViewerCommandError::io_failure(&err.to_string()))?;
     let album_dir = FileSystemService::resolve_album_directory(&base_dir)
         .map_err(|err| ViewerCommandError::io_failure(&err.to_string()))?;
     let catalog_path = MetadataService::catalog_path(&album_dir);
     let catalog = MetadataService::load_catalog(&catalog_path)
         .map_err(|err| ViewerCommandError::progress_read_failure(&err.to_string()))?;
 
-    if !catalog.albums.iter().any(|entry| entry.id == payload.album_id) {
+    if !catalog
+        .albums
+        .iter()
+        .any(|entry| entry.id == payload.album_id)
+    {
         return Err(ViewerCommandError::album_not_found());
     }
 
@@ -470,6 +570,132 @@ fn save_reading_progress(
     })
 }
 
+#[tauri::command]
+fn get_startup_context() -> Result<StartupContextResponse, SettingsCommandError> {
+    let base_dir = std::env::current_dir()
+        .map_err(|err| SettingsCommandError::startup_context_failure(&err.to_string()))?;
+    let album_dir = FileSystemService::resolve_album_directory(&base_dir)
+        .map_err(|err| SettingsCommandError::startup_context_failure(&err.to_string()))?;
+    let catalog_path = MetadataService::catalog_path(&album_dir);
+    let catalog = MetadataService::load_catalog(&catalog_path)
+        .map_err(|err| SettingsCommandError::settings_read_failure(&err.to_string()))?;
+
+    let settings = MetadataService::get_settings(&catalog);
+    let mut warnings = Vec::new();
+
+    if let Some(path) = &settings.albums_directory {
+        if let Err(err) = FileSystemService::validate_accessible_directory(path) {
+            warnings.push(format!(
+                "Configured albums directory is unavailable: {}. Select a new folder in settings.",
+                err
+            ));
+        }
+    }
+
+    let restore_album_id = if settings.remember_last_album {
+        catalog.last_opened_album_id.as_ref().and_then(|album_id| {
+            if catalog.albums.iter().any(|entry| &entry.id == album_id) {
+                Some(album_id.clone())
+            } else {
+                None
+            }
+        })
+    } else {
+        None
+    };
+
+    Ok(StartupContextResponse {
+        settings,
+        restore_album_id,
+        warnings,
+    })
+}
+
+#[tauri::command]
+fn update_user_settings(
+    payload: UpdateUserSettingsRequest,
+) -> Result<UpdateUserSettingsResponse, SettingsCommandError> {
+    if payload.initial_zoom < 0.5 || payload.initial_zoom > 3.0 {
+        return Err(SettingsCommandError::invalid_zoom_value());
+    }
+
+    let canonical_directory = if let Some(path) = payload.albums_directory {
+        let resolved = FileSystemService::validate_accessible_directory(&path)
+            .map_err(|err| SettingsCommandError::invalid_albums_directory(&err.to_string()))?;
+        Some(resolved.to_string_lossy().to_string())
+    } else {
+        None
+    };
+
+    let base_dir = std::env::current_dir()
+        .map_err(|err| SettingsCommandError::settings_write_failure(&err.to_string()))?;
+    let album_dir = FileSystemService::resolve_album_directory(&base_dir)
+        .map_err(|err| SettingsCommandError::settings_write_failure(&err.to_string()))?;
+    let catalog_path = MetadataService::catalog_path(&album_dir);
+
+    let updated_at = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+        .to_string();
+
+    let settings = MetadataService::save_settings(
+        &catalog_path,
+        UserSettings {
+            theme: payload.theme,
+            albums_directory: canonical_directory,
+            fullscreen: payload.fullscreen,
+            remember_last_album: payload.remember_last_album,
+            initial_zoom: payload.initial_zoom,
+            updated_at,
+        },
+    )
+    .map_err(|err| SettingsCommandError::settings_write_failure(&err.to_string()))?;
+
+    Ok(UpdateUserSettingsResponse { settings })
+}
+
+#[tauri::command]
+fn set_last_opened_album(
+    payload: SetLastOpenedAlbumRequest,
+) -> Result<SetLastOpenedAlbumResponse, SettingsCommandError> {
+    let base_dir = std::env::current_dir()
+        .map_err(|err| SettingsCommandError::settings_write_failure(&err.to_string()))?;
+    let album_dir = FileSystemService::resolve_album_directory(&base_dir)
+        .map_err(|err| SettingsCommandError::settings_write_failure(&err.to_string()))?;
+    let catalog_path = MetadataService::catalog_path(&album_dir);
+    let catalog = MetadataService::load_catalog(&catalog_path)
+        .map_err(|err| SettingsCommandError::settings_read_failure(&err.to_string()))?;
+
+    if !catalog
+        .albums
+        .iter()
+        .any(|entry| entry.id == payload.album_id)
+    {
+        return Err(SettingsCommandError::album_not_found());
+    }
+
+    if !catalog.settings.remember_last_album {
+        let updated_at = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs()
+            .to_string();
+        return Ok(SetLastOpenedAlbumResponse {
+            saved: true,
+            updated_at,
+        });
+    }
+
+    let updated_at = MetadataService::set_last_opened_album(&catalog_path, Some(payload.album_id))
+        .map_err(|err| SettingsCommandError::settings_write_failure(&err.to_string()))?;
+
+    Ok(SetLastOpenedAlbumResponse {
+        saved: true,
+        updated_at,
+    })
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -482,7 +708,10 @@ pub fn run() {
             import_album,
             open_album_viewer,
             load_album_image,
-            save_reading_progress
+            save_reading_progress,
+            get_startup_context,
+            update_user_settings,
+            set_last_opened_album
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -634,6 +863,161 @@ mod tests {
         .unwrap();
 
         assert_eq!(response.start_index, 0);
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
+
+    #[test]
+    fn update_user_settings_rejects_out_of_range_zoom() {
+        let result = update_user_settings(UpdateUserSettingsRequest {
+            theme: "system".to_string(),
+            albums_directory: None,
+            fullscreen: false,
+            remember_last_album: false,
+            initial_zoom: 4.0,
+        })
+        .unwrap_err();
+
+        assert_eq!(result.code, "INVALID_ZOOM_VALUE");
+    }
+
+    #[test]
+    fn update_user_settings_persists_valid_payload() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-settings-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        let payload = UpdateUserSettingsRequest {
+            theme: "dark".to_string(),
+            albums_directory: Some(temp_dir.to_string_lossy().to_string()),
+            fullscreen: true,
+            remember_last_album: true,
+            initial_zoom: 1.5,
+        };
+
+        let result = update_user_settings(payload).unwrap();
+        assert_eq!(result.settings.theme, "dark");
+        assert_eq!(result.settings.initial_zoom, 1.5);
+        assert!(result.settings.albums_directory.is_some());
+
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
+
+    #[test]
+    fn get_startup_context_returns_restore_album_when_enabled() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-startup-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        let zip_path = temp_dir.join("startup.zip");
+        create_zip(&zip_path, &[("cover.png", b"png")]);
+        let catalog_path = MetadataService::catalog_path(&temp_dir);
+
+        MetadataService::add_album(
+            &catalog_path,
+            AlbumMetadata {
+                id: "startup".to_string(),
+                title: "Startup".to_string(),
+                path: zip_path.to_string_lossy().to_string(),
+                image_count: 1,
+                cover_index: 0,
+                imported_at: "0".to_string(),
+                last_opened_at: None,
+            },
+        )
+        .unwrap();
+
+        MetadataService::save_settings(
+            &catalog_path,
+            UserSettings {
+                theme: "system".to_string(),
+                albums_directory: Some(temp_dir.to_string_lossy().to_string()),
+                fullscreen: false,
+                remember_last_album: true,
+                initial_zoom: 1.0,
+                updated_at: "1".to_string(),
+            },
+        )
+        .unwrap();
+
+        MetadataService::set_last_opened_album(&catalog_path, Some("startup".to_string())).unwrap();
+
+        let context = get_startup_context().unwrap();
+        assert_eq!(context.restore_album_id.as_deref(), Some("startup"));
+
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
+
+    #[test]
+    fn get_startup_context_returns_warning_for_unavailable_directory() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-startup-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        let missing_path = temp_dir.join("missing-folder");
+        let catalog_path = MetadataService::catalog_path(&temp_dir);
+        MetadataService::save_settings(
+            &catalog_path,
+            UserSettings {
+                theme: "system".to_string(),
+                albums_directory: Some(missing_path.to_string_lossy().to_string()),
+                fullscreen: false,
+                remember_last_album: false,
+                initial_zoom: 1.0,
+                updated_at: "1".to_string(),
+            },
+        )
+        .unwrap();
+
+        let context = get_startup_context().unwrap();
+        assert!(!context.warnings.is_empty());
+
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
+
+    #[test]
+    fn set_last_opened_album_rejects_unknown_album() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-startup-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        let result = set_last_opened_album(SetLastOpenedAlbumRequest {
+            album_id: "unknown".to_string(),
+        })
+        .unwrap_err();
+        assert_eq!(result.code, "ALBUM_NOT_FOUND");
+
         std::env::set_current_dir(old_cwd).unwrap();
     }
 }

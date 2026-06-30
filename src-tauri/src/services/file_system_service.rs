@@ -54,6 +54,20 @@ impl FileSystemService {
         Self::ensure_zip_file(&path)?;
         Self::canonicalize_path(&path)
     }
+
+    pub fn validate_accessible_directory(path_text: &str) -> std::io::Result<PathBuf> {
+        let path = PathBuf::from(path_text);
+        let canonical = Self::canonicalize_path(&path)?;
+        let metadata = fs::metadata(&canonical)?;
+        if !metadata.is_dir() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "Configured albums directory is not a directory",
+            ));
+        }
+
+        Ok(canonical)
+    }
 }
 
 #[cfg(test)]
@@ -104,5 +118,22 @@ mod tests {
         let resolved =
             FileSystemService::resolve_album_zip_path(file_path.to_str().unwrap()).unwrap();
         assert!(resolved.ends_with("album.zip"));
+    }
+
+    #[test]
+    fn validates_accessible_directory() {
+        let dir = unique_temp_dir();
+        fs::create_dir_all(&dir).unwrap();
+
+        let resolved =
+            FileSystemService::validate_accessible_directory(dir.to_str().unwrap()).unwrap();
+        assert!(resolved.ends_with(dir.file_name().unwrap()));
+    }
+
+    #[test]
+    fn rejects_inaccessible_directory() {
+        let dir = unique_temp_dir();
+        let result = FileSystemService::validate_accessible_directory(dir.to_str().unwrap());
+        assert!(result.is_err());
     }
 }

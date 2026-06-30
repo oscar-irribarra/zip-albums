@@ -7,6 +7,7 @@ const importAlbumMock = vi.fn();
 const openAlbumViewerMock = vi.fn();
 const loadAlbumImageMock = vi.fn();
 const saveReadingProgressMock = vi.fn();
+const setLastOpenedAlbumMock = vi.fn();
 
 vi.mock( "../../../infrastructure/tauri", () => ( {
   getLibrary: ( ...args: unknown[] ) => getLibraryMock( ...args ),
@@ -15,6 +16,7 @@ vi.mock( "../../../infrastructure/tauri", () => ( {
   openAlbumViewer: ( ...args: unknown[] ) => openAlbumViewerMock( ...args ),
   loadAlbumImage: ( ...args: unknown[] ) => loadAlbumImageMock( ...args ),
   saveReadingProgress: ( ...args: unknown[] ) => saveReadingProgressMock( ...args ),
+  setLastOpenedAlbum: ( ...args: unknown[] ) => setLastOpenedAlbumMock( ...args ),
 } ) );
 
 describe( "libraryStore importAlbum", () => {
@@ -25,6 +27,7 @@ describe( "libraryStore importAlbum", () => {
     openAlbumViewerMock.mockReset();
     loadAlbumImageMock.mockReset();
     saveReadingProgressMock.mockReset();
+    setLastOpenedAlbumMock.mockReset();
     useLibraryStore.setState( {
       albums: [],
       sortOrder: "name",
@@ -99,11 +102,32 @@ describe( "libraryStore importAlbum", () => {
       mime_type: "image/png",
     } );
 
-    const result = await useLibraryStore.getState().openAlbumViewer( "album-1" );
+    const result = await useLibraryStore.getState().openAlbumViewer( "album-1", true );
 
     expect( result ).toBe( true );
     expect( useLibraryStore.getState().viewerSession?.current_index ).toBe( 0 );
     expect( useLibraryStore.getState().viewerImage?.image_index ).toBe( 0 );
+    expect( setLastOpenedAlbumMock ).toHaveBeenCalledWith( { album_id: "album-1" } );
+  } );
+
+  it( "does not track last opened album when remember flag is disabled", async () => {
+    openAlbumViewerMock.mockResolvedValue( {
+      album_id: "album-1",
+      album_name: "Album One",
+      total_images: 4,
+      start_index: 0,
+    } );
+    loadAlbumImageMock.mockResolvedValue( {
+      album_id: "album-1",
+      image_index: 0,
+      image_source: "data:image/png;base64,ZmFrZQ==",
+      mime_type: "image/png",
+    } );
+
+    const result = await useLibraryStore.getState().openAlbumViewer( "album-1", false );
+
+    expect( result ).toBe( true );
+    expect( setLastOpenedAlbumMock ).not.toHaveBeenCalled();
   } );
 
   it( "navigates to a clamped image index and stores the loaded thumbnail", async () => {

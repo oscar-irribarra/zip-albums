@@ -292,3 +292,11 @@ Mitigation: default-safe deserialization, sequenced startup initialization, and 
 ## Complexity Tracking
 
 No constitution violations. No additional abstraction was introduced beyond a small dedicated settings feature module.
+
+## Implementation Notes (2026-06-30)
+
+- Added frontend settings module (`SettingsPanel`, `settingsStore`) and integrated it in app shell.
+- Added Rust settings commands: `get_startup_context`, `update_user_settings`, and `set_last_opened_album`.
+- Extended metadata persistence with `settings` and `last_opened_album_id` while keeping file-based storage only.
+- Added startup restore flow and warning surfacing in both settings and library views.
+- Validation status: TypeScript compile, frontend tests, and Rust tests all passing.

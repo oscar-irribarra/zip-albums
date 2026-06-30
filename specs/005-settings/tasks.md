@@ -18,10 +18,10 @@
 
 **Purpose**: Create minimal project structure for settings feature without changing behavior.
 
-- [ ] T001 Infrastructure: Create settings feature structure in `src/features/settings/components/SettingsPanel.tsx`, `src/features/settings/store/settingsStore.ts`, and `src/features/settings/index.ts`
-- [ ] T002 Infrastructure: Add settings contracts to shared frontend models in `src/shared/types/library.ts`
-- [ ] T003 [P] Infrastructure: Add typed settings command wrappers in `src/infrastructure/tauri.ts`
-- [ ] T004 Validation: Verify TypeScript compiles after setup changes with `pnpm exec tsc --noEmit` from repository root
+- [X] T001 Infrastructure: Create settings feature structure in `src/features/settings/components/SettingsPanel.tsx`, `src/features/settings/store/settingsStore.ts`, and `src/features/settings/index.ts`
+- [X] T002 Infrastructure: Add settings contracts to shared frontend models in `src/shared/types/library.ts`
+- [X] T003 [P] Infrastructure: Add typed settings command wrappers in `src/infrastructure/tauri.ts`
+- [X] T004 Validation: Verify TypeScript compiles after setup changes with `pnpm exec tsc --noEmit` from repository root
 
 **Checkpoint**: Repository builds and remains runnable with scaffolding only.
 
@@ -35,27 +35,27 @@
 
 ### Infrastructure
 
-- [ ] T005 Infrastructure: Extend catalog data shape with defaults for settings metadata in `src-tauri/src/services/metadata_service.rs`
+- [X] T005 Infrastructure: Extend catalog data shape with defaults for settings metadata in `src-tauri/src/services/metadata_service.rs`
 
 ### Backend (Rust)
 
-- [ ] T006 Backend (Rust): Add read/write settings helpers in `src-tauri/src/services/metadata_service.rs`
-- [ ] T007 Backend (Rust): Add albums directory validation and canonicalization helper in `src-tauri/src/services/file_system_service.rs`
-- [ ] T008 Backend (Rust): Add settings command request/response structs and error mapping in `src-tauri/src/lib.rs`
-- [ ] T009 Backend (Rust): Add Tauri command registration stubs for `get_startup_context`, `update_user_settings`, and `set_last_opened_album` in `src-tauri/src/lib.rs`
+- [X] T006 Backend (Rust): Add read/write settings helpers in `src-tauri/src/services/metadata_service.rs`
+- [X] T007 Backend (Rust): Add albums directory validation and canonicalization helper in `src-tauri/src/services/file_system_service.rs`
+- [X] T008 Backend (Rust): Add settings command request/response structs and error mapping in `src-tauri/src/lib.rs`
+- [X] T009 Backend (Rust): Add Tauri command registration stubs for `get_startup_context`, `update_user_settings`, and `set_last_opened_album` in `src-tauri/src/lib.rs`
 
 ### Frontend (React)
 
-- [ ] T010 Frontend (React): Implement base settings store state/actions (`loadSettings`, `saveSettings`, `applyRuntimePreferences`) in `src/features/settings/store/settingsStore.ts`
+- [X] T010 Frontend (React): Implement base settings store state/actions (`loadSettings`, `saveSettings`, `applyRuntimePreferences`) in `src/features/settings/store/settingsStore.ts`
 
 ### Testing
 
-- [ ] T011 Testing: Add Rust unit tests for settings metadata defaults and read/write roundtrip in `src-tauri/src/services/metadata_service.rs`
-- [ ] T012 [P] Testing: Add Rust unit tests for albums directory validation paths in `src-tauri/src/services/file_system_service.rs`
+- [X] T011 Testing: Add Rust unit tests for settings metadata defaults and read/write roundtrip in `src-tauri/src/services/metadata_service.rs`
+- [X] T012 [P] Testing: Add Rust unit tests for albums directory validation paths in `src-tauri/src/services/file_system_service.rs`
 
 ### Validation
 
-- [ ] T013 Validation: Run `cargo test` in `src-tauri/` and fix foundational failures before user story work
+- [X] T013 Validation: Run `cargo test` in `src-tauri/` and fix foundational failures before user story work
 
 **Checkpoint**: Core persistence and validation primitives are in place and tested.
 
@@ -69,28 +69,28 @@
 
 ### Testing (US1)
 
-- [ ] T014 [P] [US1] Testing: Add component tests for settings form controls and validation messages in `src/features/settings/components/SettingsPanel.test.tsx`
-- [ ] T015 [P] [US1] Testing: Add store tests for save success/failure and optimistic UI states in `src/features/settings/store/settingsStore.test.ts`
-- [ ] T016 [P] [US1] Testing: Add Rust command tests for `update_user_settings` valid/invalid payloads in `src-tauri/src/lib.rs`
+- [X] T014 [P] [US1] Testing: Add component tests for settings form controls and validation messages in `src/features/settings/components/SettingsPanel.test.tsx`
+- [X] T015 [P] [US1] Testing: Add store tests for save success/failure and optimistic UI states in `src/features/settings/store/settingsStore.test.ts`
+- [X] T016 [P] [US1] Testing: Add Rust command tests for `update_user_settings` valid/invalid payloads in `src-tauri/src/lib.rs`
 
 ### Backend (Rust) (US1)
 
-- [ ] T017 [US1] Backend (Rust): Implement `update_user_settings` command with zoom and folder validation in `src-tauri/src/lib.rs`
-- [ ] T018 [US1] Backend (Rust): Persist validated settings and updated timestamp via `MetadataService` in `src-tauri/src/services/metadata_service.rs`
+- [X] T017 [US1] Backend (Rust): Implement `update_user_settings` command with zoom and folder validation in `src-tauri/src/lib.rs`
+- [X] T018 [US1] Backend (Rust): Persist validated settings and updated timestamp via `MetadataService` in `src-tauri/src/services/metadata_service.rs`
 
 ### Frontend (React) (US1)
 
-- [ ] T019 [US1] Frontend (React): Implement settings form UI and field-level validation in `src/features/settings/components/SettingsPanel.tsx`
-- [ ] T020 [US1] Frontend (React): Connect settings form to settings store actions in `src/features/settings/store/settingsStore.ts` and `src/features/settings/components/SettingsPanel.tsx`
+- [X] T019 [US1] Frontend (React): Implement settings form UI and field-level validation in `src/features/settings/components/SettingsPanel.tsx`
+- [X] T020 [US1] Frontend (React): Connect settings form to settings store actions in `src/features/settings/store/settingsStore.ts` and `src/features/settings/components/SettingsPanel.tsx`
 
 ### Integration (US1)
 
-- [ ] T021 [US1] Integration: Wire settings panel into app shell and feature export in `src/App.tsx` and `src/features/settings/index.ts`
-- [ ] T022 [US1] Integration: Connect frontend settings save flow to Tauri commands in `src/infrastructure/tauri.ts` and `src/features/settings/store/settingsStore.ts`
+- [X] T021 [US1] Integration: Wire settings panel into app shell and feature export in `src/App.tsx` and `src/features/settings/index.ts`
+- [X] T022 [US1] Integration: Connect frontend settings save flow to Tauri commands in `src/infrastructure/tauri.ts` and `src/features/settings/store/settingsStore.ts`
 
 ### Validation (US1)
 
-- [ ] T023 [US1] Validation: Execute quickstart Scenario A and document pass/fail notes in `specs/005-settings/quickstart.md`
+- [X] T023 [US1] Validation: Execute quickstart Scenario A and document pass/fail notes in `specs/005-settings/quickstart.md`
 
 **Checkpoint**: MVP complete. User can configure and save settings in a runnable app.
 
@@ -104,28 +104,28 @@
 
 ### Testing (US2)
 
-- [ ] T024 [P] [US2] Testing: Add Rust command tests for `get_startup_context` restoration and warning cases in `src-tauri/src/lib.rs`
-- [ ] T025 [P] [US2] Testing: Add frontend startup tests for remember-last-album ON/OFF behavior in `src/features/settings/store/settingsStore.test.ts`
-- [ ] T026 [P] [US2] Testing: Extend library store tests for last-opened-album persistence trigger in `src/features/library/store/libraryStore.test.ts`
+- [X] T024 [P] [US2] Testing: Add Rust command tests for `get_startup_context` restoration and warning cases in `src-tauri/src/lib.rs`
+- [X] T025 [P] [US2] Testing: Add frontend startup tests for remember-last-album ON/OFF behavior in `src/features/settings/store/settingsStore.test.ts`
+- [X] T026 [P] [US2] Testing: Extend library store tests for last-opened-album persistence trigger in `src/features/library/store/libraryStore.test.ts`
 
 ### Backend (Rust) (US2)
 
-- [ ] T027 [US2] Backend (Rust): Implement `get_startup_context` command to return settings, warnings, and conditional `restore_album_id` in `src-tauri/src/lib.rs`
-- [ ] T028 [US2] Backend (Rust): Implement `set_last_opened_album` command and metadata persistence in `src-tauri/src/lib.rs` and `src-tauri/src/services/metadata_service.rs`
+- [X] T027 [US2] Backend (Rust): Implement `get_startup_context` command to return settings, warnings, and conditional `restore_album_id` in `src-tauri/src/lib.rs`
+- [X] T028 [US2] Backend (Rust): Implement `set_last_opened_album` command and metadata persistence in `src-tauri/src/lib.rs` and `src-tauri/src/services/metadata_service.rs`
 
 ### Frontend (React) (US2)
 
-- [ ] T029 [US2] Frontend (React): Implement startup initialization flow for loading/applying restored settings in `src/features/settings/store/settingsStore.ts` and `src/App.tsx`
-- [ ] T030 [US2] Frontend (React): Surface startup warnings for inaccessible albums directory in `src/features/settings/components/SettingsPanel.tsx` and `src/features/library/components/LibraryView.tsx`
+- [X] T029 [US2] Frontend (React): Implement startup initialization flow for loading/applying restored settings in `src/features/settings/store/settingsStore.ts` and `src/App.tsx`
+- [X] T030 [US2] Frontend (React): Surface startup warnings for inaccessible albums directory in `src/features/settings/components/SettingsPanel.tsx` and `src/features/library/components/LibraryView.tsx`
 
 ### Integration (US2)
 
-- [ ] T031 [US2] Integration: Call `set_last_opened_album` when a viewer session opens and remember-last-album is enabled in `src/features/library/store/libraryStore.ts`
-- [ ] T032 [US2] Integration: Restore last album on startup when `restore_album_id` is present in `src/App.tsx`, `src/features/settings/store/settingsStore.ts`, and `src/features/library/store/libraryStore.ts`
+- [X] T031 [US2] Integration: Call `set_last_opened_album` when a viewer session opens and remember-last-album is enabled in `src/features/library/store/libraryStore.ts`
+- [X] T032 [US2] Integration: Restore last album on startup when `restore_album_id` is present in `src/App.tsx`, `src/features/settings/store/settingsStore.ts`, and `src/features/library/store/libraryStore.ts`
 
 ### Validation (US2)
 
-- [ ] T033 [US2] Validation: Execute quickstart Scenarios B, C, and D and record outcomes in `specs/005-settings/quickstart.md`
+- [X] T033 [US2] Validation: Execute quickstart Scenarios B, C, and D and record outcomes in `specs/005-settings/quickstart.md`
 
 **Checkpoint**: Persistence across executions works end-to-end and remains independently testable.
 
@@ -137,17 +137,17 @@
 
 ### Testing
 
-- [ ] T034 Testing: Run full frontend tests with `pnpm test` and resolve regressions in `src/features/settings/**/*.test.ts*` and `src/features/library/**/*.test.ts*`
-- [ ] T035 Testing: Run full Rust tests with `cargo test` in `src-tauri/` and resolve regressions in `src-tauri/src/**/*.rs`
+- [X] T034 Testing: Run full frontend tests with `pnpm test` and resolve regressions in `src/features/settings/**/*.test.ts*` and `src/features/library/**/*.test.ts*`
+- [X] T035 Testing: Run full Rust tests with `cargo test` in `src-tauri/` and resolve regressions in `src-tauri/src/**/*.rs`
 
 ### Integration
 
-- [ ] T036 Integration: Verify command/type contract consistency between `src/shared/types/library.ts`, `src/infrastructure/tauri.ts`, and `src-tauri/src/lib.rs`
+- [X] T036 Integration: Verify command/type contract consistency between `src/shared/types/library.ts`, `src/infrastructure/tauri.ts`, and `src-tauri/src/lib.rs`
 
 ### Validation
 
-- [ ] T037 Validation: Run complete manual startup and settings smoke flow from `specs/005-settings/quickstart.md` and confirm app remains runnable
-- [ ] T038 Validation: Update feature notes and implementation assumptions in `specs/005-settings/plan.md` and `specs/005-settings/quickstart.md` if behavior changed during implementation
+- [X] T037 Validation: Run complete manual startup and settings smoke flow from `specs/005-settings/quickstart.md` and confirm app remains runnable
+- [X] T038 Validation: Update feature notes and implementation assumptions in `specs/005-settings/plan.md` and `specs/005-settings/quickstart.md` if behavior changed during implementation
 
 ---
 
