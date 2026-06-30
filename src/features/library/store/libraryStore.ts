@@ -10,10 +10,7 @@ import {
 import type {
   AlbumViewSession,
   AlbumSummary,
-  DeleteAlbumResponse,
   ImportAlbumError,
-  ImportAlbumResponse,
-  LibraryResponse,
   LoadAlbumImageResponse,
   SortOrder,
   ViewerCommandError,
@@ -29,11 +26,14 @@ interface LibraryState {
   viewerImage: LoadAlbumImageResponse | null;
   viewerLoading: boolean;
   viewerError: string | null;
+  thumbnailCache: Record<string, LoadAlbumImageResponse>;
   loadLibrary: () => Promise<void>;
   deleteAlbum: ( albumId: string ) => Promise<boolean>;
   importAlbum: ( zipPath: string ) => Promise<boolean>;
   openAlbumViewer: ( albumId: string ) => Promise<boolean>;
+  goToImage: ( imageIndex: number ) => Promise<boolean>;
   loadViewerImage: ( imageIndex: number ) => Promise<boolean>;
+  loadThumbnailImage: ( imageIndex: number ) => Promise<LoadAlbumImageResponse | null>;
   closeViewer: () => Promise<void>;
   setSortOrder: ( order: SortOrder ) => void;
 }
@@ -87,6 +87,12 @@ function resolveViewerErrorMessage( error: unknown ): string {
   return "Unable to open the selected album";
 }
 
+function buildThumbnailKey( albumId: string, imageIndex: number ): string {
+  return `${albumId}:${imageIndex}`;
+}
+
+let navigationRequestId = 0;
+
 export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
   albums: [],
   sortOrder: "name",
@@ -97,6 +103,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
   viewerImage: null,
   viewerLoading: false,
   viewerError: null,
+  thumbnailCache: {},
 
   loadLibrary: async () => {
     set( { loading: true, error: null } );
@@ -140,6 +147,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
   },
 
   openAlbumViewer: async ( albumId: string ) => {
+    const requestId = ++navigationRequestId;
     set( { viewerLoading: true, viewerError: null } );
     try {
       const response = await openAlbumViewerCommand( { album_id: albumId } );
@@ -156,59 +164,125 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
         image_index: response.start_index,
       } );
 
+      if ( requestId !== navigationRequestId ) {
+        return true;
+      }
+
       set( {
         viewerSession: session,
         viewerImage: image,
         viewerLoading: false,
+        thumbnailCache: {
+          [buildThumbnailKey( response.album_id, response.start_index )]: image,
+        },
       } );
       return true;
     } catch ( error ) {
+      if ( requestId !== navigationRequestId ) {
+        return false;
+      }
+
       set( {
         viewerSession: null,
         viewerImage: null,
         viewerError: resolveViewerErrorMessage( error ),
         viewerLoading: false,
+        thumbnailCache: {},
       } );
       return false;
     }
   },
 
-  loadViewerImage: async ( imageIndex: number ) => {
+  goToImage: async ( imageIndex: number ) => {
     const session = get().viewerSession;
     if ( !session ) {
       return false;
     }
 
+    const boundedIndex = Math.max( 0, Math.min( imageIndex, session.total_images - 1 ) );
+    const requestId = ++navigationRequestId;
+
     set( { viewerLoading: true, viewerError: null } );
     try {
       const image = await loadAlbumImageCommand( {
         album_id: session.album_id,
-        image_index: imageIndex,
+        image_index: boundedIndex,
       } );
+
+      if ( requestId !== navigationRequestId ) {
+        return true;
+      }
 
       set( {
         viewerImage: image,
-        viewerSession: { ...session, current_index: imageIndex },
+        viewerSession: { ...session, current_index: boundedIndex },
+        thumbnailCache: {
+          ...get().thumbnailCache,
+          [buildThumbnailKey( session.album_id, boundedIndex )]: image,
+        },
       } );
 
       try {
+        if ( requestId !== navigationRequestId ) {
+          return true;
+        }
+
         await saveReadingProgressCommand( {
           album_id: session.album_id,
-          last_image_index: imageIndex,
+          last_image_index: boundedIndex,
         } );
       } catch ( progressError ) {
-        set( { viewerError: resolveViewerErrorMessage( progressError ) } );
+        if ( requestId === navigationRequestId ) {
+          set( { viewerError: resolveViewerErrorMessage( progressError ) } );
+        }
       }
 
-      set( { viewerLoading: false } );
+      if ( requestId === navigationRequestId ) {
+        set( { viewerLoading: false } );
+      }
       return true;
     } catch ( error ) {
-      set( { viewerError: resolveViewerErrorMessage( error ), viewerLoading: false } );
+      if ( requestId === navigationRequestId ) {
+        set( { viewerError: resolveViewerErrorMessage( error ), viewerLoading: false } );
+      }
       return false;
     }
   },
 
+  loadViewerImage: async ( imageIndex: number ) => get().goToImage( imageIndex ),
+
+  loadThumbnailImage: async ( imageIndex: number ) => {
+    const session = get().viewerSession;
+    if ( !session ) {
+      return null;
+    }
+
+    const boundedIndex = Math.max( 0, Math.min( imageIndex, session.total_images - 1 ) );
+    const cacheKey = buildThumbnailKey( session.album_id, boundedIndex );
+    const cached = get().thumbnailCache[cacheKey];
+    if ( cached ) {
+      return cached;
+    }
+
+    const image = await loadAlbumImageCommand( {
+      album_id: session.album_id,
+      image_index: boundedIndex,
+    } );
+
+    if ( get().viewerSession?.album_id === session.album_id ) {
+      set( ( state ) => ( {
+        thumbnailCache: {
+          ...state.thumbnailCache,
+          [cacheKey]: image,
+        },
+      } ) );
+    }
+
+    return image;
+  },
+
   closeViewer: async () => {
+    navigationRequestId += 1;
     const session = get().viewerSession;
     if ( session ) {
       try {
@@ -226,6 +300,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
       viewerImage: null,
       viewerLoading: false,
       viewerError: null,
+      thumbnailCache: {},
     } );
   },
 

@@ -1,15 +1,47 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import LibraryView from "./LibraryView";
+import type { AlbumViewSession, LoadAlbumImageResponse, SortOrder } from "../../../shared/types/library";
 
 const loadLibrary = vi.fn();
 const deleteAlbum = vi.fn();
 const importAlbum = vi.fn();
 const openAlbumViewer = vi.fn();
-const loadViewerImage = vi.fn();
+const goToImage = vi.fn();
+const loadThumbnailImage = vi.fn();
 const closeViewer = vi.fn();
 const setSortOrder = vi.fn();
-const mockState = {
+interface LibraryViewMockState {
+  albums: Array<{
+    id: string;
+    title: string;
+    path: string;
+    image_count: number;
+    cover_index: number;
+    imported_at: string;
+    last_opened_at: string | null;
+    cover_data: string | null;
+  }>;
+  sortOrder: SortOrder;
+  loading: boolean;
+  importing: boolean;
+  error: string | null;
+  viewerSession: AlbumViewSession | null;
+  viewerImage: LoadAlbumImageResponse | null;
+  viewerLoading: boolean;
+  viewerError: string | null;
+  thumbnailCache: Record<string, LoadAlbumImageResponse>;
+  loadLibrary: typeof loadLibrary;
+  deleteAlbum: typeof deleteAlbum;
+  importAlbum: typeof importAlbum;
+  openAlbumViewer: typeof openAlbumViewer;
+  goToImage: typeof goToImage;
+  loadThumbnailImage: typeof loadThumbnailImage;
+  closeViewer: typeof closeViewer;
+  setSortOrder: typeof setSortOrder;
+}
+
+const mockState: LibraryViewMockState = {
   albums: [
     {
       id: "album-1",
@@ -30,11 +62,13 @@ const mockState = {
   viewerImage: null,
   viewerLoading: false,
   viewerError: null as string | null,
+  thumbnailCache: {},
   loadLibrary,
   deleteAlbum,
   importAlbum,
   openAlbumViewer,
-  loadViewerImage,
+  goToImage,
+  loadThumbnailImage,
   closeViewer,
   setSortOrder,
 };
@@ -117,5 +151,31 @@ describe("LibraryView", () => {
 
     mockState.viewerSession = null;
     mockState.viewerImage = null;
+  });
+
+  it("renders thumbnail strip when the viewer is open", () => {
+    mockState.viewerSession = {
+      album_id: "album-1",
+      album_name: "Album One",
+      total_images: 3,
+      current_index: 1,
+      started_at: "2026-06-30T00:00:00Z",
+    };
+    mockState.thumbnailCache = {
+      "album-1:1": {
+        album_id: "album-1",
+        image_index: 1,
+        image_source: "data:image/png;base64,ZmFrZQ==",
+        mime_type: "image/png",
+      },
+    };
+
+    render(<LibraryView />);
+
+    expect(screen.getByLabelText("Album thumbnails")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Image 2" })).toBeInTheDocument();
+
+    mockState.viewerSession = null;
+    mockState.thumbnailCache = {};
   });
 } );

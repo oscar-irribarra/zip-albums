@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useLibraryStore } from "../store/libraryStore";
 import AlbumCard from "./AlbumCard";
+import ThumbnailStrip from "./ThumbnailStrip";
 import type { SortOrder } from "../../../shared/types/library";
 
 function LibraryView() {
@@ -15,11 +16,13 @@ function LibraryView() {
     viewerImage,
     viewerLoading,
     viewerError,
+    thumbnailCache,
     loadLibrary,
     deleteAlbum,
     importAlbum,
     openAlbumViewer,
-    loadViewerImage,
+    goToImage,
+    loadThumbnailImage,
     closeViewer,
     setSortOrder,
   } = useLibraryStore();
@@ -29,6 +32,34 @@ function LibraryView() {
   useEffect(() => {
     void loadLibrary();
   }, [loadLibrary]);
+
+  useEffect(() => {
+    if (!viewerSession) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const tagName = target?.tagName?.toLowerCase();
+
+      if (target?.isContentEditable || tagName === "input" || tagName === "textarea" || tagName === "select") {
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        void goToImage(viewerSession.current_index - 1);
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        void goToImage(viewerSession.current_index + 1);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [goToImage, viewerSession]);
 
   const sortedAlbums = useMemo(() => {
     const items = [...albums];
@@ -81,7 +112,7 @@ function LibraryView() {
       return;
     }
 
-    await loadViewerImage(viewerSession.current_index - 1);
+    await goToImage(viewerSession.current_index - 1);
   };
 
   const handleNext = async () => {
@@ -89,12 +120,16 @@ function LibraryView() {
       return;
     }
 
-    await loadViewerImage(viewerSession.current_index + 1);
+    await goToImage(viewerSession.current_index + 1);
   };
 
   const counter = viewerSession
     ? `${viewerSession.current_index + 1} / ${viewerSession.total_images}`
     : null;
+
+  const handleThumbnailSelect = async ( index: number ) => {
+    await goToImage( index );
+  };
 
   return (
     <section className="library-view">
@@ -104,13 +139,13 @@ function LibraryView() {
           <button type="button" onClick={() => void handleImport()} disabled={importing}>
             {importing ? "Importing..." : "Import ZIP"}
           </button>
-        <label>
-          Sort by
-          <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value as SortOrder)}>
-            <option value="name">Name</option>
-            <option value="date">Date</option>
-          </select>
-        </label>
+          <label>
+            Sort by
+            <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value as SortOrder)}>
+              <option value="name">Name</option>
+              <option value="date">Date</option>
+            </select>
+          </label>
         </div>
       </header>
 
@@ -130,6 +165,14 @@ function LibraryView() {
               <img src={viewerImage.image_source} alt={`${viewerSession.album_name} page ${viewerSession.current_index + 1}`} />
             )}
           </div>
+          <ThumbnailStrip
+            albumId={viewerSession.album_id}
+            totalImages={viewerSession.total_images}
+            selectedIndex={viewerSession.current_index}
+            thumbnailCache={thumbnailCache}
+            onSelect={(index) => void handleThumbnailSelect(index)}
+            loadThumbnailImage={loadThumbnailImage}
+          />
           <div className="album-viewer-actions">
             <button type="button" onClick={() => void handlePrevious()} disabled={viewerLoading || viewerSession.current_index <= 0}>
               Previous
