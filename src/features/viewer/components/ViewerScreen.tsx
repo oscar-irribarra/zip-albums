@@ -25,6 +25,14 @@ function ViewerScreen() {
   const sessionCurrentIndex = session?.current_index ?? 0;
   const sessionTotalImages = session?.total_images ?? 0;
 
+  const ZOOM_STEP = 0.25;
+  const ZOOM_MIN  = 0.5;
+  const ZOOM_MAX  = 4.0;
+
+  const handleZoomIn    = () => setZoomLevel( Math.min( ZOOM_MAX, zoomLevel + ZOOM_STEP ) );
+  const handleZoomOut   = () => setZoomLevel( Math.max( ZOOM_MIN, zoomLevel - ZOOM_STEP ) );
+  const handleZoomReset = () => { setZoomLevel( 1 ); setPanOffset( { x: 0, y: 0 } ); };
+
   const [prevImageSize, setPrevImageSize] = useState<{ width: number; height: number } | null>( null );
   const [hoverVisible, setHoverVisible] = useState( false );
   const [panOffset, setPanOffset] = useState( { x: 0, y: 0 } );
@@ -64,15 +72,23 @@ function ViewerScreen() {
 
       if ( event.key === "ArrowLeft" && sessionCurrentIndex > 0 ) {
         event.preventDefault();
+        setZoomLevel( 1 );
+        setPanOffset( { x: 0, y: 0 } );
         void goToImage( sessionCurrentIndex - 1 );
       } else if ( event.key === "ArrowRight" && sessionCurrentIndex < sessionTotalImages - 1 ) {
         event.preventDefault();
+        setZoomLevel( 1 );
+        setPanOffset( { x: 0, y: 0 } );
         void goToImage( sessionCurrentIndex + 1 );
       } else if ( event.key === "Home" && sessionCurrentIndex !== 0 ) {
         event.preventDefault();
+        setZoomLevel( 1 );
+        setPanOffset( { x: 0, y: 0 } );
         void goToImage( 0 );
       } else if ( event.key === "End" && sessionCurrentIndex !== sessionTotalImages - 1 ) {
         event.preventDefault();
+        setZoomLevel( 1 );
+        setPanOffset( { x: 0, y: 0 } );
         void goToImage( sessionTotalImages - 1 );
       } else if ( ( event.key === "f" || event.key === "F" ) && !isFullscreen ) {
         event.preventDefault();
@@ -85,7 +101,7 @@ function ViewerScreen() {
 
     window.addEventListener( "keydown", handleKeyDown );
     return () => window.removeEventListener( "keydown", handleKeyDown );
-  }, [goToImage, sessionCurrentIndex, sessionTotalImages] );
+  }, [goToImage, sessionCurrentIndex, sessionTotalImages, setZoomLevel, setPanOffset] );
 
   if ( !session ) {
     return null;
@@ -106,6 +122,7 @@ function ViewerScreen() {
 
   const handlePrev = () => {
     if ( session.current_index > 0 ) {
+      setZoomLevel( 1 );
       setPanOffset( { x: 0, y: 0 } );
       void goToImage( session.current_index - 1 );
     }
@@ -113,17 +130,15 @@ function ViewerScreen() {
 
   const handleNext = () => {
     if ( session.current_index < session.total_images - 1 ) {
+      setZoomLevel( 1 );
       setPanOffset( { x: 0, y: 0 } );
       void goToImage( session.current_index + 1 );
     }
   };
 
   return (
-    <section
-      className="album-viewer"
-      aria-label="Album viewer"
-    >
-      <header className="album-viewer-header">
+    <div className="viewer-screen-shell">
+      <div className="viewer-top-bar">
         <button
           type="button"
           className="viewer-back-btn"
@@ -134,41 +149,45 @@ function ViewerScreen() {
         </button>
         <h3>{session.album_name}</h3>
         <p className="album-viewer-counter">{counter}</p>
-      </header>
-
-      <div
-        ref={frameRef}
-        className="album-viewer-image-frame"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        style={{ cursor: zoomLevel > 1 ? "grab" : "default" }}
-      >
-        <div className="viewer-zoom-controls">
-          <button type="button" onClick={() => setZoomLevel( zoomLevel + 0.25 )} aria-label="Zoom in" title="Zoom in">+</button>
-          <button type="button" onClick={() => setZoomLevel( zoomLevel - 0.25 )} aria-label="Zoom out" title="Zoom out">-</button>
-          <button type="button" onClick={() => { setZoomLevel( 1 ); setPanOffset( { x: 0, y: 0 } ); }} aria-label="Reset zoom" title="Reset zoom">○</button>
-        </div>
-
-        {loading && prevImageSize && <div className="image-skeleton" style={skeletonStyle} />}
-        {loading && !prevImageSize && <p>Loading image...</p>}
-
-        {!loading && image && (
-          <img
-            src={image.image_source}
-            alt={`${session.album_name} page ${session.current_index + 1}`}
-            style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`, transformOrigin: "center" }}
-            onLoad={( event ) => {
-              setPrevImageSize( {
-                width: event.currentTarget.naturalWidth,
-                height: event.currentTarget.naturalHeight,
-              } );
-            }}
-          />
-        )}
       </div>
 
-      {error && <p className="error-message">{error}</p>}
+      <section
+        className="album-viewer"
+        aria-label="Album viewer"
+      >
+        <div
+          ref={frameRef}
+          className={`album-viewer-image-frame${zoomLevel > 1 ? " album-viewer-image-frame--zoomed" : ""}`}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+        >
+          <div className="viewer-zoom-controls">
+            <button type="button" onClick={handleZoomIn}    aria-label="Zoom in"    title="Zoom in">+</button>
+            <button type="button" onClick={handleZoomOut}   aria-label="Zoom out"   title="Zoom out">−</button>
+            <button type="button" onClick={handleZoomReset} aria-label="Reset zoom" title="Reset zoom">○</button>
+          </div>
+
+          {loading && prevImageSize && <div className="image-skeleton" style={skeletonStyle} />}
+          {loading && !prevImageSize && <p>Loading image...</p>}
+
+          {!loading && image && (
+            <img
+              src={image.image_source}
+              alt={`${session.album_name} page ${session.current_index + 1}`}
+              style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`, transformOrigin: "center" }}
+              onLoad={( event ) => {
+                setPrevImageSize( {
+                  width: event.currentTarget.naturalWidth,
+                  height: event.currentTarget.naturalHeight,
+                } );
+              }}
+            />
+          )}
+        </div>
+
+        {error && <p className="error-message">{error}</p>}
+      </section>
 
       <div className="viewer-thumbnail-area">
         <div className={`thumbnail-strip-wrapper thumbnail-strip-wrapper--${thumbnailVisible ? "visible" : "hidden"}`}>
@@ -204,7 +223,7 @@ function ViewerScreen() {
           Next
         </button>
       </div>
-    </section>
+    </div>
   );
 }
 

@@ -21,7 +21,7 @@
 
 **Purpose**: Confirm the baseline is stable before any changes are made.
 
-- [ ] T001 Verify baseline — run `pnpm vitest run` and confirm all existing tests pass; run `pnpm tauri dev` and confirm the viewer opens and navigates correctly
+- [X] T001 Verify baseline — run `pnpm vitest run` and confirm all existing tests pass; run `pnpm tauri dev` and confirm the viewer opens and navigates correctly
 
 **Checkpoint**: Baseline confirmed — implementation can begin.
 
@@ -35,9 +35,9 @@
 
 ### Implementation
 
-- [ ] T002 [P] [US1] In `src/features/viewer/components/ViewerScreen.tsx` — add `ZOOM_MIN = 0.5`, `ZOOM_MAX = 4.0`, `ZOOM_STEP = 0.25` constants; replace the three inline `onClick` lambdas on the zoom buttons with named handlers `handleZoomIn` (`Math.min(ZOOM_MAX, zoomLevel + ZOOM_STEP)`), `handleZoomOut` (`Math.max(ZOOM_MIN, zoomLevel - ZOOM_STEP)`), `handleZoomReset` (`setZoomLevel(1); setPanOffset({x:0,y:0})`); add `album-viewer-image-frame--zoomed` class to the frame `<div>` when `zoomLevel > 1` and remove the inline `cursor` style from that element
+- [X] T002 [P] [US1] In `src/features/viewer/components/ViewerScreen.tsx` — add `ZOOM_MIN = 0.5`, `ZOOM_MAX = 4.0`, `ZOOM_STEP = 0.25` constants; replace the three inline `onClick` lambdas on the zoom buttons with named handlers `handleZoomIn` (`Math.min(ZOOM_MAX, zoomLevel + ZOOM_STEP)`), `handleZoomOut` (`Math.max(ZOOM_MIN, zoomLevel - ZOOM_STEP)`), `handleZoomReset` (`setZoomLevel(1); setPanOffset({x:0,y:0})`); add `album-viewer-image-frame--zoomed` class to the frame `<div>` when `zoomLevel > 1` and remove the inline `cursor` style from that element
 
-- [ ] T003 [P] [US1] In `src/App.css` — add two rules after the existing `.album-viewer-image-frame` block: `.album-viewer-image-frame--zoomed { cursor: grab; }` and `.album-viewer-image-frame--zoomed:active { cursor: grabbing; }`
+- [X] T003 [P] [US1] In `src/App.css` — add two rules after the existing `.album-viewer-image-frame` block: `.album-viewer-image-frame--zoomed { cursor: grab; }` and `.album-viewer-image-frame--zoomed:active { cursor: grabbing; }`
 
 **Checkpoint**: Zoom controls are fully functional and bounded. Pan cursor reflects drag state via CSS `:active`. Application is in a runnable state.
 
@@ -51,11 +51,11 @@
 
 ### Implementation
 
-- [ ] T004 [P] [US2] In `src/features/viewer/components/ViewerScreen.tsx` — add `setZoomLevel(1)` call inside `handlePrev` (before `goToImage`) and inside `handleNext` (before `goToImage`); `setPanOffset({x:0,y:0})` is already present in both handlers
+- [X] T004 [P] [US2] In `src/features/viewer/components/ViewerScreen.tsx` — add `setZoomLevel(1)` call inside `handlePrev` (before `goToImage`) and inside `handleNext` (before `goToImage`); `setPanOffset({x:0,y:0})` is already present in both handlers
 
-- [ ] T005 [P] [US2] In `src/features/viewer/components/ViewerScreen.tsx` — inside the keyboard shortcut `useEffect` callback, add `setZoomLevel(1); setPanOffset({ x: 0, y: 0 });` immediately before each of the four `goToImage()` calls (`ArrowLeft`, `ArrowRight`, `Home`, `End`); add `setZoomLevel` and `setPanOffset` to the effect's dependency array
+- [X] T005 [P] [US2] In `src/features/viewer/components/ViewerScreen.tsx` — inside the keyboard shortcut `useEffect` callback, add `setZoomLevel(1); setPanOffset({ x: 0, y: 0 });` immediately before each of the four `goToImage()` calls (`ArrowLeft`, `ArrowRight`, `Home`, `End`); add `setZoomLevel` and `setPanOffset` to the effect's dependency array
 
-- [ ] T006 [P] [US2] In `src/App.css` — inside the existing dark theme overrides block, add:
+- [X] T006 [P] [US2] In `src/App.css` — inside the existing dark theme overrides block, add:
   ```css
   :root[data-theme="dark"] .image-skeleton {
     background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
@@ -79,7 +79,7 @@
 
 ### Implementation
 
-- [ ] T007 [US3] In `src/App.css` — replace the `.thumbnail-card` size rules: change `width: 140px; height: 100px` to `width: 64px; aspect-ratio: 3 / 4` (remove the explicit `height`); remove `aspect-ratio: 1 / 1` from `.thumbnail-preview` and add `flex: 1;` so the preview fills the card height; update `.thumbnail-card` responsive override in the `@media (max-width: 640px)` block from `width: 84px` to `width: 48px`
+- [X] T007 [US3] In `src/App.css` — replace the `.thumbnail-card` size rules: change `width: 140px; height: 100px` to `width: 64px; aspect-ratio: 3 / 4` (remove the explicit `height`); remove `aspect-ratio: 1 / 1` from `.thumbnail-preview` and add `flex: 1;` so the preview fills the card height; update `.thumbnail-card` responsive override in the `@media (max-width: 640px)` block from `width: 84px` to `width: 48px`
 
 **Checkpoint**: Thumbnail strip renders portrait cards. Hover reveal/hide behavior is unchanged. No image resizing occurs. Application is in a runnable state.
 
@@ -93,11 +93,11 @@
 
 ### Implementation
 
-- [ ] T008 [US4] In `src/App.css` — add `.viewer-screen-shell { display: flex; flex-direction: column; min-height: 100vh; padding: 1rem; gap: 0.5rem; }` and `.viewer-top-bar { display: flex; align-items: center; gap: 1rem; }` after the `.app-shell` block; remove the `padding`, `gap`, and `flex` / `flex-direction` rules from `.album-viewer` that assumed the header was inside it (the border, background, and border-radius stay)
+- [X] T008 [US4] In `src/App.css` — add `.viewer-screen-shell { display: flex; flex-direction: column; min-height: 100vh; padding: 1rem; gap: 0.5rem; }` and `.viewer-top-bar { display: flex; align-items: center; gap: 1rem; }` after the `.app-shell` block; remove the `padding`, `gap`, and `flex` / `flex-direction` rules from `.album-viewer` that assumed the header was inside it (the border, background, and border-radius stay)
 
-- [ ] T009 [US4] In `src/features/viewer/components/ViewerScreen.tsx` — restructure the JSX return: (1) replace the outer `<section className="album-viewer">` with `<div className="viewer-screen-shell">`; (2) add `<div className="viewer-top-bar">` containing the Back `<button>`, the `<h3>` album name, and the `<p className="album-viewer-counter">` counter as the first child; (3) wrap the image frame, zoom controls, skeleton, and image `<img>` in `<section className="album-viewer" aria-label="Album viewer">`; (4) move `.viewer-thumbnail-area` and `.album-viewer-actions` outside `.album-viewer` but inside `.viewer-screen-shell`; (5) remove the old `<header className="album-viewer-header">` wrapper (its contents are now in `viewer-top-bar`); this task depends on T008 (CSS classes must exist)
+- [X] T009 [US4] In `src/features/viewer/components/ViewerScreen.tsx` — restructure the JSX return: (1) replace the outer `<section className="album-viewer">` with `<div className="viewer-screen-shell">`; (2) add `<div className="viewer-top-bar">` containing the Back `<button>`, the `<h3>` album name, and the `<p className="album-viewer-counter">` counter as the first child; (3) wrap the image frame, zoom controls, skeleton, and image `<img>` in `<section className="album-viewer" aria-label="Album viewer">`; (4) move `.viewer-thumbnail-area` and `.album-viewer-actions` outside `.album-viewer` but inside `.viewer-screen-shell`; (5) remove the old `<header className="album-viewer-header">` wrapper (its contents are now in `viewer-top-bar`); this task depends on T008 (CSS classes must exist)
 
-- [ ] T010 [P] [US4] In `src/App.css` — change `.album-viewer-actions { justify-content: flex-end }` to `justify-content: center`; add dark theme override for the Back button: `:root[data-theme="dark"] .viewer-back-btn { border-color: #475569; color: #e2e8f0; background: transparent; }`
+- [X] T010 [P] [US4] In `src/App.css` — change `.album-viewer-actions { justify-content: flex-end }` to `justify-content: center`; add dark theme override for the Back button: `:root[data-theme="dark"] .viewer-back-btn { border-color: #475569; color: #e2e8f0; background: transparent; }`
 
 **Checkpoint**: Back button is visually above and outside the image display area. Prev/Thumbnails/Next are centered. Both buttons adapt to light and dark themes. Application is in a runnable state.
 
@@ -107,15 +107,15 @@
 
 **Purpose**: Confirm all user stories pass their independent tests and no regressions exist.
 
-- [ ] T011 Run `pnpm vitest run` from the project root — all tests must pass with zero failures; no modifications to test files are needed
+- [X] T011 Run `pnpm vitest run` from the project root — all tests must pass with zero failures; no modifications to test files are needed
 
-- [ ] T012 [US1] Manual validation — follow quickstart.md Scenario 1: zoom in (stops at 4.0×), zoom out (stops at 0.5×), reset (returns to 1.0× centered), drag while zoomed (pans, cursor shows `grabbing`), confirm empty space never appears inside the frame
+- [X] T012 [US1] Manual validation — follow quickstart.md Scenario 1: zoom in (stops at 4.0×), zoom out (stops at 0.5×), reset (returns to 1.0× centered), drag while zoomed (pans, cursor shows `grabbing`), confirm empty space never appears inside the frame
 
-- [ ] T013 [US2] Manual validation — follow quickstart.md Scenario 2: zoom + drag on image N → navigate to image N+1 (zoom and pan both reset) → repeat with keyboard keys (ArrowLeft, ArrowRight, Home, End) → switch to dark theme and confirm skeleton is dark gray, not light gray
+- [X] T013 [US2] Manual validation — follow quickstart.md Scenario 2: zoom + drag on image N → navigate to image N+1 (zoom and pan both reset) → repeat with keyboard keys (ArrowLeft, ArrowRight, Home, End) → switch to dark theme and confirm skeleton is dark gray, not light gray
 
-- [ ] T014 [US3] Manual validation — follow quickstart.md Scenario 3: strip is hidden on open → hover to reveal (cards are taller than wide) → unhover to hide → confirm image frame size is unchanged throughout
+- [X] T014 [US3] Manual validation — follow quickstart.md Scenario 3: strip is hidden on open → hover to reveal (cards are taller than wide) → unhover to hide → confirm image frame size is unchanged throughout
 
-- [ ] T015 [US4] Manual validation — follow quickstart.md Scenario 4: Back button is above the image area → switch themes and confirm Back button adapts → Prev/Thumbnails/Next are horizontally centered → click Back to return to library
+- [X] T015 [US4] Manual validation — follow quickstart.md Scenario 4: Back button is above the image area → switch themes and confirm Back button adapts → Prev/Thumbnails/Next are horizontally centered → click Back to return to library
 
 ---
 
