@@ -310,11 +310,6 @@ impl ImportAlbumError {
 }
 
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
 fn get_library() -> Result<LibraryResponse, String> {
     let base_dir = std::env::current_dir().map_err(|err| err.to_string())?;
     let album_dir =
@@ -741,7 +736,6 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            greet,
             get_library,
             delete_album,
             import_album,

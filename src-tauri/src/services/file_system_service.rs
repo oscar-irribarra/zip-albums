@@ -12,14 +12,6 @@ impl FileSystemService {
         Ok(base_dir.to_path_buf())
     }
 
-    pub fn delete_file(path: &Path) -> std::io::Result<()> {
-        if path.exists() {
-            fs::remove_file(path)?;
-        }
-
-        Ok(())
-    }
-
     pub fn ensure_zip_file(path: &Path) -> std::io::Result<()> {
         let metadata = fs::metadata(path)?;
         if !metadata.is_file() {

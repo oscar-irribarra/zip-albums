@@ -31,10 +31,6 @@ export interface DeleteAlbumResponse {
   removed_album_id?: string | null;
 }
 
-export interface ImportAlbumRequest {
-  zip_path: string;
-}
-
 export interface ImportAlbumResponse {
   album: AlbumSummary;
 }
@@ -100,23 +96,6 @@ export interface ImageCacheDiagnostics {
   next_cached: boolean;
   cache_entries: number;
   cache_estimated_bytes: number;
-}
-
-export type ShortcutGesture =
-  | "ArrowLeft"
-  | "ArrowRight"
-  | "Home"
-  | "End"
-  | "f"
-  | "Escape"
-  | "Ctrl+O"
-  | "Delete";
-
-export interface ShortcutGuardContext {
-  viewer_active: boolean;
-  is_fullscreen: boolean;
-  selected_album_id: string | null;
-  editable_target_active: boolean;
 }
 
 export interface SaveReadingProgressRequest {

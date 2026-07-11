@@ -42,10 +42,6 @@ export function loadAlbumImage( payload: LoadAlbumImageRequest ) {
   return invoke<LoadAlbumImageResponse>( "load_album_image", { payload } );
 }
 
-export function loadAlbumImageForCache( payload: LoadAlbumImageRequest ) {
-  return loadAlbumImage( payload );
-}
-
 export function saveReadingProgress( payload: SaveReadingProgressRequest ) {
   return invoke<SaveReadingProgressResponse>( "save_reading_progress", { payload } );
 }

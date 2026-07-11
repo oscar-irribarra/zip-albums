@@ -3,7 +3,7 @@ import {
   deleteAlbum as deleteAlbumCommand,
   getLibrary,
   importAlbum as importAlbumCommand,
-  loadAlbumImageForCache,
+  loadAlbumImage,
   openAlbumViewer as openAlbumViewerCommand,
   setLastOpenedAlbum as setLastOpenedAlbumCommand,
   saveReadingProgress as saveReadingProgressCommand,
@@ -331,7 +331,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
         started_at: new Date().toISOString(),
       };
 
-      const image = await loadAlbumImageForCache( {
+      const image = await loadAlbumImage( {
         album_id: response.album_id,
         image_index: response.start_index,
       } );
@@ -362,7 +362,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
         .filter( ( index ) => index >= 0 && index < response.total_images );
 
       for ( const prefetchIndex of prefetchTargets ) {
-        void loadAlbumImageForCache( {
+        void loadAlbumImage( {
           album_id: response.album_id,
           image_index: prefetchIndex,
         } ).then( ( prefetched ) => {
@@ -439,7 +439,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
       const cachedImage = get().imageCache[cacheKey];
       const image = cachedImage
         ? toImageResponse( cachedImage )
-        : await loadAlbumImageForCache( {
+        : await loadAlbumImage( {
           album_id: session.album_id,
           image_index: boundedIndex,
         } );
@@ -472,7 +472,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
           continue;
         }
 
-        void loadAlbumImageForCache( {
+        void loadAlbumImage( {
           album_id: session.album_id,
           image_index: prefetchIndex,
         } ).then( ( prefetched ) => {
@@ -547,7 +547,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
       return toImageResponse( cachedImage );
     }
 
-    const image = await loadAlbumImageForCache( {
+    const image = await loadAlbumImage( {
       album_id: session.album_id,
       image_index: boundedIndex,
     } );

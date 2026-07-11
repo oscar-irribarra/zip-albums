@@ -22,7 +22,6 @@ vi.mock( "../../../infrastructure/tauri", () => ( {
   importAlbum: ( ...args: unknown[] ) => importAlbumMock( ...args ),
   openAlbumViewer: ( ...args: unknown[] ) => openAlbumViewerMock( ...args ),
   loadAlbumImage: ( ...args: unknown[] ) => loadAlbumImageMock( ...args ),
-  loadAlbumImageForCache: ( ...args: unknown[] ) => loadAlbumImageMock( ...args ),
   saveReadingProgress: ( ...args: unknown[] ) => saveReadingProgressMock( ...args ),
   setLastOpenedAlbum: ( ...args: unknown[] ) => setLastOpenedAlbumMock( ...args ),
 } ) );

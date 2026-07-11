@@ -19,9 +19,9 @@
 **Purpose**: Confirm the full test suite and build are green before any change is made.
 No file is modified in this phase. All subsequent phases must preserve this baseline.
 
-- [ ] T001 Run `pnpm test` in the repo root and record the passing test count as baseline
-- [ ] T002 Run `cargo test` inside `src-tauri/` and record the passing test count as baseline
-- [ ] T003 Run `pnpm build` and confirm TypeScript compilation exits with code 0
+- [X] T001 Run `pnpm test` in the repo root and record the passing test count as baseline
+- [X] T002 Run `cargo test` inside `src-tauri/` and record the passing test count as baseline
+- [X] T003 Run `pnpm build` and confirm TypeScript compilation exits with code 0
 
 **Checkpoint**: Baseline green. All three commands succeed. Do not proceed unless T001–T003 all pass.
 
@@ -35,9 +35,9 @@ was never reachable from the frontend.
 
 **Independent Test**: `cargo build` exits 0; `cargo test` still passes; `grep -n "greet" src-tauri/src/lib.rs` returns no results.
 
-- [ ] T004 [US1] Remove the `#[tauri::command]` attribute and `fn greet(name: &str) -> String` function body from `src-tauri/src/lib.rs`
-- [ ] T005 [US1] Remove the `greet,` entry from `tauri::generate_handler![...]` inside `pub fn run()` in `src-tauri/src/lib.rs`
-- [ ] T006 [US1] Run `cargo build` inside `src-tauri/` and confirm exit code 0 with no dead-code warnings
+- [X] T004 [US1] Remove the `#[tauri::command]` attribute and `fn greet(name: &str) -> String` function body from `src-tauri/src/lib.rs`
+- [X] T005 [US1] Remove the `greet,` entry from `tauri::generate_handler![...]` inside `pub fn run()` in `src-tauri/src/lib.rs`
+- [X] T006 [US1] Run `cargo build` inside `src-tauri/` and confirm exit code 0 with no dead-code warnings
 
 **Checkpoint**: Rust builds cleanly. `greet` is fully gone from the binary.
 
@@ -50,9 +50,9 @@ colocated `ThumbnailStrip.tsx`. Neither file is imported by any live production 
 
 **Independent Test**: `pnpm build` exits 0; `grep -r "ImageViewer" src/ --include="*.tsx" --include="*.ts"` returns zero results in non-test files.
 
-- [ ] T007 [US2] Delete `src/features/library/components/ImageViewer.tsx`
-- [ ] T008 [P] [US2] Delete `src/features/library/components/ThumbnailStrip.tsx`
-- [ ] T009 [US2] Run `pnpm build` and confirm no import resolution errors for the deleted files
+- [X] T007 [US2] Delete `src/features/library/components/ImageViewer.tsx`
+- [X] T008 [P] [US2] Delete `src/features/library/components/ThumbnailStrip.tsx`
+- [X] T009 [US2] Run `pnpm build` and confirm no import resolution errors for the deleted files
 
 **Checkpoint**: `ImageViewer` and its orphaned `ThumbnailStrip` are gone. `ViewerScreen` continues to use `src/features/viewer/components/ThumbnailStrip.tsx`. Build passes.
 
@@ -65,9 +65,9 @@ its single caller in `libraryStore.ts` to call `loadAlbumImage` directly.
 
 **Independent Test**: `pnpm build` exits 0; `grep -r "loadAlbumImageForCache" src/` returns no results.
 
-- [ ] T010 [US3] Remove the `loadAlbumImageForCache` export function from `src/infrastructure/tauri.ts` (the 3-line function that delegates to `loadAlbumImage`)
-- [ ] T011 [US3] In `src/features/library/store/libraryStore.ts`, replace the `loadAlbumImageForCache` import with `loadAlbumImage` and update the call site inside the store to invoke `loadAlbumImage` instead
-- [ ] T012 [US3] Run `pnpm build` and confirm exit code 0 with no unresolved import errors
+- [X] T010 [US3] Remove the `loadAlbumImageForCache` export function from `src/infrastructure/tauri.ts` (the 3-line function that delegates to `loadAlbumImage`)
+- [X] T011 [US3] In `src/features/library/store/libraryStore.ts`, replace the `loadAlbumImageForCache` import with `loadAlbumImage` and update the call site inside the store to invoke `loadAlbumImage` instead
+- [X] T012 [US3] Run `pnpm build` and confirm exit code 0 with no unresolved import errors
 
 **Checkpoint**: `loadAlbumImageForCache` is gone from the infrastructure layer. The store calls `loadAlbumImage` directly.
 
@@ -80,11 +80,11 @@ exported but imported by zero other files in the project.
 
 **Independent Test**: `pnpm build` exits 0; `grep -rn "ImportAlbumRequest\|ShortcutGesture\|ShortcutGuardContext" src/` returns no results.
 
-- [ ] T013 [US3] Confirm zero imports exist: run `grep -rn "ImportAlbumRequest\|ShortcutGesture\|ShortcutGuardContext" src/ --include="*.ts" --include="*.tsx"` and verify only the definition lines in `library.ts` appear
-- [ ] T014 [US3] Remove the `ImportAlbumRequest` interface block from `src/shared/types/library.ts`
-- [ ] T015 [P] [US3] Remove the `ShortcutGesture` type alias block from `src/shared/types/library.ts`
-- [ ] T016 [P] [US3] Remove the `ShortcutGuardContext` interface block from `src/shared/types/library.ts`
-- [ ] T017 [US3] Run `pnpm build` and confirm exit code 0
+- [X] T013 [US3] Confirm zero imports exist: run `grep -rn "ImportAlbumRequest\|ShortcutGesture\|ShortcutGuardContext" src/ --include="*.ts" --include="*.tsx"` and verify only the definition lines in `library.ts` appear
+- [X] T014 [US3] Remove the `ImportAlbumRequest` interface block from `src/shared/types/library.ts`
+- [X] T015 [P] [US3] Remove the `ShortcutGesture` type alias block from `src/shared/types/library.ts`
+- [X] T016 [P] [US3] Remove the `ShortcutGuardContext` interface block from `src/shared/types/library.ts`
+- [X] T017 [US3] Run `pnpm build` and confirm exit code 0
 
 **Checkpoint**: Three dead type declarations removed. Build is clean.
 
@@ -96,10 +96,10 @@ exported but imported by zero other files in the project.
 
 **Independent Test**: `pnpm test` exits 0; the two deleted files no longer appear in the test runner output; `src/features/library/store/libraryStore.test.ts` still passes and its test count matches the baseline from T001.
 
-- [ ] T018 [US2] Delete `src/test/ImageViewer.test.tsx` (tests the removed `ImageViewer` component)
-- [ ] T019 [P] [US4] Delete `src/test/libraryStore.test.ts` (byte-identical duplicate of `src/features/library/store/libraryStore.test.ts`)
-- [ ] T020 [US3] Remove the `loadAlbumImageForCache: (...args) => loadAlbumImageMock(...args)` entry from the `vi.mock` factory in `src/features/library/store/libraryStore.test.ts`
-- [ ] T021 [US3] Run `pnpm test` and confirm all remaining tests pass
+- [X] T018 [US2] Delete `src/test/ImageViewer.test.tsx` (tests the removed `ImageViewer` component)
+- [X] T019 [P] [US4] Delete `src/test/libraryStore.test.ts` (byte-identical duplicate of `src/features/library/store/libraryStore.test.ts`)
+- [X] T020 [US3] Remove the `loadAlbumImageForCache: (...args) => loadAlbumImageMock(...args)` entry from the `vi.mock` factory in `src/features/library/store/libraryStore.test.ts`
+- [X] T021 [US3] Run `pnpm test` and confirm all remaining tests pass
 
 **Checkpoint**: No test references a removed symbol. No duplicate test file remains. `pnpm test` is green.
 
@@ -110,12 +110,12 @@ exported but imported by zero other files in the project.
 **Purpose**: End-to-end verification that the application compiles, all tests pass,
 and the running application behaves identically to the pre-cleanup baseline.
 
-- [ ] T022 Run `pnpm test` — all tests pass; test count equals baseline minus deleted tests (T018, T019)
-- [ ] T023 Run `cargo test` inside `src-tauri/` — all Rust tests pass; count matches T002 baseline
-- [ ] T024 Run `pnpm build` — TypeScript build is clean, exit code 0
-- [ ] T025 Run `cargo build` inside `src-tauri/` — Rust build is clean, zero dead-code warnings, exit code 0
-- [ ] T026 Verify deleted files are absent: `src/features/library/components/ImageViewer.tsx`, `src/features/library/components/ThumbnailStrip.tsx`, `src/test/ImageViewer.test.tsx`, `src/test/libraryStore.test.ts`
-- [ ] T027 Verify modified files contain no removed symbols: `loadAlbumImageForCache` absent from `tauri.ts` and `libraryStore.ts`; `ImportAlbumRequest`, `ShortcutGesture`, `ShortcutGuardContext` absent from `library.ts`; `greet` absent from `lib.rs`
+- [X] T022 Run `pnpm test` — all tests pass; test count equals baseline minus deleted tests (T018, T019)
+- [X] T023 Run `cargo test` inside `src-tauri/` — all Rust tests pass; count matches T002 baseline
+- [X] T024 Run `pnpm build` — TypeScript build is clean, exit code 0
+- [X] T025 Run `cargo build` inside `src-tauri/` — Rust build is clean, zero dead-code warnings, exit code 0
+- [X] T026 Verify deleted files are absent: `src/features/library/components/ImageViewer.tsx`, `src/features/library/components/ThumbnailStrip.tsx`, `src/test/ImageViewer.test.tsx`, `src/test/libraryStore.test.ts`
+- [X] T027 Verify modified files contain no removed symbols: `loadAlbumImageForCache` absent from `tauri.ts` and `libraryStore.ts`; `ImportAlbumRequest`, `ShortcutGesture`, `ShortcutGuardContext` absent from `library.ts`; `greet` absent from `lib.rs`
 - [ ] T028 Run `pnpm tauri dev` and smoke-test: library view loads, opening an album launches `ViewerScreen`, keyboard navigation works, settings panel opens and saves
 
 **Checkpoint**: Definition of Done satisfied. All acceptance criteria from [spec.md](spec.md) met.
