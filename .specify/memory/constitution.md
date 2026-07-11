@@ -1,34 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: (none — initial population of template) → 1.0.0
-Status: First fill of template with project-specific values
-
-Principles Added (10 total):
-  I.   Offline First
-  II.  ZIP is the Source of Truth
-  III. Read-Only Albums
-  IV.  Simple Architecture
-  V.   Separation of Responsibilities
-  VI.  Local Persistence
-  VII. Lazy Loading
-  VIII.Performance
-  IX.  Error Handling
-  X.   Cross Platform
+Version Change: 1.0.0 → 1.1.0
+Bump Type: MINOR — new section added (Definition of Done)
 
 Sections Added:
-  - Purpose
-  - Architecture
-  - Folder Organization
-  - Rust Responsibilities
-  - Metadata
-  - Dependencies
-  - Testing
-  - Accessibility
-  - Security
-  - Logging
-  - Architecture Decisions
-  - Future Features
+  - Definition of Done (technical debt reduction gate for all specs)
+
+Sections Modified:
+  - Governance: version line and Last Amended date updated
+
+Principles Modified: None
 
 Templates Reviewed:
   ✅ .specify/templates/plan-template.md — Constitution Check gate is generic; no changes needed
@@ -247,6 +229,22 @@ image filters, search, and cloud synchronization.
 Current implementations SHOULD NOT make these features harder to add but MUST NOT implement
 them preemptively.
 
+## Definition of Done
+
+A feature is considered complete only if ALL of the following conditions are met:
+
+- Acceptance criteria defined in the spec are satisfied.
+- Automated tests pass (unit and integration where applicable).
+- Documentation is updated when behavior or interfaces change.
+- Obsolete code introduced by the change has been removed.
+- Unused dependencies have been removed.
+- No new dead code remains in the codebase.
+- Static analysis reports no new critical issues.
+
+No task may be marked done unless the full Definition of Done is met.
+This gate applies to every feature spec and MUST be verified during the Constitution Check
+step in plan.md.
+
 ## Governance
 
 This constitution supersedes all other practices and informal conventions.
@@ -260,4 +258,4 @@ Changes governed by the Architecture Decisions section require an ADR before any
 
 Compliance is verified at each feature implementation via the Constitution Check gate in plan.md.
 
-**Version**: 1.0.0 | **Ratified**: 2026-06-30 | **Last Amended**: 2026-06-30
+**Version**: 1.1.0 | **Ratified**: 2026-06-30 | **Last Amended**: 2026-07-11
