@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LibraryView } from "./features/library";
-import { SettingsPanel, useSettingsStore } from "./features/settings";
+import { SettingsFAB, SettingsSidePanel, useSettingsStore } from "./features/settings";
 import { useLibraryStore } from "./features/library/store/libraryStore";
 import "./App.css";
 
@@ -12,6 +12,7 @@ function App() {
   const rememberLastAlbum = useSettingsStore((state) => state.settings?.remember_last_album ?? false);
   const openAlbumViewer = useLibraryStore((state) => state.openAlbumViewer);
   const restoredAlbumRef = useRef<string | null>(null);
+  const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
 
   useEffect(() => {
     void loadSettings();
@@ -32,8 +33,14 @@ function App() {
 
   return (
     <main className="app-shell">
-      <SettingsPanel />
       <LibraryView startupWarnings={startupWarnings} rememberLastAlbum={rememberLastAlbum} />
+      <SettingsFAB onClick={() => setSettingsPanelOpen(true)} />
+      <SettingsSidePanel
+        isOpen={settingsPanelOpen}
+        onClose={() => setSettingsPanelOpen(false)}
+        startupWarnings={startupWarnings}
+        rememberLastAlbum={rememberLastAlbum}
+      />
     </main>
   );
 }

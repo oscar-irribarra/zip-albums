@@ -11,6 +11,11 @@ interface SettingsFormState {
   initial_zoom: string;
 }
 
+interface SettingsPanelProps {
+  startupWarnings?: string[];
+  rememberLastAlbum?: boolean;
+}
+
 function toFormState(payload: UpdateUserSettingsRequest): SettingsFormState {
   return {
     theme: payload.theme,
@@ -36,7 +41,7 @@ function parseFormState(form: SettingsFormState): UpdateUserSettingsRequest | nu
   };
 }
 
-function SettingsPanel() {
+function SettingsPanel( { startupWarnings, rememberLastAlbum }: SettingsPanelProps ) {
   const { settings, loading, saving, error, warnings, saveSettings } = useSettingsStore();
   const [validationError, setValidationError] = useState<string | null>(null);
   const [form, setForm] = useState<SettingsFormState>( {
@@ -62,6 +67,8 @@ function SettingsPanel() {
   }, [settings]);
 
   const warningText = useMemo(() => warnings.join(" "), [warnings]);
+  void startupWarnings;
+  void rememberLastAlbum;
 
   const handleSave = async () => {
     setValidationError(null);

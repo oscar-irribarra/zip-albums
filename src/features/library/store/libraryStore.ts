@@ -34,6 +34,8 @@ interface LibraryState {
   cacheWindow: CacheWindowState | null;
   cacheDiagnostics: ImageCacheDiagnostics;
   thumbnailCache: Record<string, LoadAlbumImageResponse>;
+  zoomLevel: number;
+  thumbnailStripPinned: boolean;
   loadLibrary: () => Promise<void>;
   deleteAlbum: ( albumId: string ) => Promise<boolean>;
   importAlbum: ( zipPath: string ) => Promise<boolean>;
@@ -43,6 +45,12 @@ interface LibraryState {
   loadThumbnailImage: ( imageIndex: number ) => Promise<LoadAlbumImageResponse | null>;
   closeViewer: () => Promise<void>;
   setSortOrder: ( order: SortOrder ) => void;
+  setZoomLevel: ( level: number ) => void;
+  setThumbnailStripPinned: ( pinned: boolean ) => void;
+}
+
+function clampZoomLevel( level: number ): number {
+  return Math.max( 0.25, Math.min( level, 4 ) );
 }
 
 const importErrorMessages: Record<ImportAlbumError["code"], string> = {
@@ -266,6 +274,8 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
     cache_estimated_bytes: 0,
   },
   thumbnailCache: {},
+  zoomLevel: 1,
+  thumbnailStripPinned: false,
 
   loadLibrary: async () => {
     set( { loading: true, error: null } );
@@ -344,6 +354,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
         viewerSession: session,
         viewerImage: image,
         viewerLoading: false,
+        zoomLevel: 1,
         ...policy,
       } );
 
@@ -447,6 +458,7 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
         return {
           viewerImage: image,
           viewerSession: { ...session, current_index: boundedIndex },
+          zoomLevel: 1,
           ...policy,
         };
       } );
@@ -586,8 +598,13 @@ export const useLibraryStore = create<LibraryState>( ( set, get ) => ( {
         cache_estimated_bytes: 0,
       },
       thumbnailCache: {},
+      thumbnailStripPinned: false,
     } );
   },
 
   setSortOrder: ( order ) => set( { sortOrder: order } ),
+
+  setZoomLevel: ( level ) => set( { zoomLevel: clampZoomLevel( level ) } ),
+
+  setThumbnailStripPinned: ( pinned ) => set( { thumbnailStripPinned: pinned } ),
 } ) );

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useLibraryStore } from "../store/libraryStore";
 import AlbumCard from "./AlbumCard";
-import ThumbnailStrip from "./ThumbnailStrip";
+import ImageViewer from "./ImageViewer";
 import type { ShortcutGesture, SortOrder } from "../../../shared/types/library";
 
 interface LibraryViewProps {
@@ -53,6 +53,8 @@ function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: Libra
     viewerLoading,
     viewerError,
     thumbnailCache,
+    zoomLevel,
+    thumbnailStripPinned,
     loadLibrary,
     deleteAlbum,
     importAlbum,
@@ -61,6 +63,8 @@ function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: Libra
     loadThumbnailImage,
     closeViewer,
     setSortOrder,
+    setZoomLevel,
+    setThumbnailStripPinned,
   } = useLibraryStore();
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [pendingImportTitle, setPendingImportTitle] = useState<string | null>(null);
@@ -236,10 +240,6 @@ function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: Libra
     await goToImage(viewerSession.current_index + 1);
   };
 
-  const counter = viewerSession
-    ? `${viewerSession.current_index + 1} / ${viewerSession.total_images}`
-    : null;
-
   const handleThumbnailSelect = async ( index: number ) => {
     await goToImage( index );
   };
@@ -264,48 +264,30 @@ function LibraryView( { startupWarnings = [], rememberLastAlbum = false }: Libra
 
       {loading && <p>Loading albums...</p>}
       {error && <p className="error-message">{error}</p>}
-      {viewerError && <p className="error-message">{viewerError}</p>}
       {shortcutError && <p className="error-message">{shortcutError}</p>}
       {startupWarnings.map( ( warning ) => (
         <p key={warning} className="error-message">{warning}</p>
       ) )}
 
       {viewerSession && (
-        <section className="album-viewer" aria-label="Album viewer">
-          <header className="album-viewer-header">
-            <h3>{viewerSession.album_name}</h3>
-            <p className="album-viewer-counter">{counter}</p>
-          </header>
-          <div className="album-viewer-image-frame">
-            {viewerLoading && <p>Loading image...</p>}
-            {!viewerLoading && viewerImage && (
-              <img src={viewerImage.image_source} alt={`${viewerSession.album_name} page ${viewerSession.current_index + 1}`} />
-            )}
-          </div>
-          <ThumbnailStrip
-            albumId={viewerSession.album_id}
-            totalImages={viewerSession.total_images}
-            selectedIndex={viewerSession.current_index}
-            thumbnailCache={thumbnailCache}
-            onSelect={(index) => void handleThumbnailSelect(index)}
-            loadThumbnailImage={loadThumbnailImage}
-          />
-          <div className="album-viewer-actions">
-            <button type="button" onClick={() => void handlePrevious()} disabled={viewerLoading || viewerSession.current_index <= 0}>
-              Previous
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleNext()}
-              disabled={viewerLoading || viewerSession.current_index >= viewerSession.total_images - 1}
-            >
-              Next
-            </button>
-            <button type="button" onClick={() => void closeViewer()}>
-              Close Viewer
-            </button>
-          </div>
-        </section>
+        <ImageViewer
+          session={viewerSession}
+          image={viewerImage}
+          loading={viewerLoading}
+          error={viewerError}
+          zoomLevel={zoomLevel}
+          onZoomIn={() => setZoomLevel( zoomLevel + 0.25 )}
+          onZoomOut={() => setZoomLevel( zoomLevel - 0.25 )}
+          onZoomReset={() => setZoomLevel( 1 )}
+          onPrev={() => void handlePrevious()}
+          onNext={() => void handleNext()}
+          onClose={() => void closeViewer()}
+          thumbnailStripPinned={thumbnailStripPinned}
+          onToggleThumbnailStrip={() => setThumbnailStripPinned( !thumbnailStripPinned )}
+          thumbnailCache={thumbnailCache}
+          loadThumbnailImage={loadThumbnailImage}
+          onSelectThumbnail={(index) => void handleThumbnailSelect(index)}
+        />
       )}
 
       {!loading && sortedAlbums.length === 0 && <p>No albums available yet.</p>}

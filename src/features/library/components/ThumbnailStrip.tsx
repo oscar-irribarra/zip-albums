@@ -8,6 +8,7 @@ interface ThumbnailStripProps {
   thumbnailCache: Record<string, LoadAlbumImageResponse>;
   onSelect: (index: number) => void;
   loadThumbnailImage: (imageIndex: number) => Promise<LoadAlbumImageResponse | null>;
+  visible: boolean;
 }
 
 function buildThumbnailKey(albumId: string, imageIndex: number) {
@@ -21,6 +22,7 @@ function ThumbnailStrip({
   thumbnailCache,
   onSelect,
   loadThumbnailImage,
+  visible,
 }: ThumbnailStripProps) {
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -45,7 +47,10 @@ function ThumbnailStrip({
   }, [selectedIndex]);
 
   return (
-    <div className="thumbnail-strip" aria-label="Album thumbnails">
+    <div
+      className={visible ? "thumbnail-strip thumbnail-strip--visible" : "thumbnail-strip thumbnail-strip--hidden"}
+      aria-label="Album thumbnails"
+    >
       {Array.from({ length: totalImages }, (_, index) => {
         const cacheKey = buildThumbnailKey(albumId, index);
         const cached = thumbnailCache[cacheKey];

@@ -19,7 +19,7 @@
 
 **Technical area**: Frontend — Zustand
 
-- [ ] T001 Add `zoomLevel: number` (default `1.0`) and `thumbnailStripPinned: boolean` (default `false`) state fields to `LibraryState`; add `setZoomLevel(level)` action (clamp `0.25`–`4.0`) and `setThumbnailStripPinned(pinned)` action; reset `zoomLevel` to `1.0` inside `openAlbumViewer` and `goToImage`; reset `thumbnailStripPinned` to `false` inside `closeViewer` in `src/features/library/store/libraryStore.ts`
+- [X] T001 Add `zoomLevel: number` (default `1.0`) and `thumbnailStripPinned: boolean` (default `false`) state fields to `LibraryState`; add `setZoomLevel(level)` action (clamp `0.25`–`4.0`) and `setThumbnailStripPinned(pinned)` action; reset `zoomLevel` to `1.0` inside `openAlbumViewer` and `goToImage`; reset `thumbnailStripPinned` to `false` inside `closeViewer` in `src/features/library/store/libraryStore.ts`
 
 **Checkpoint**: Store compiles cleanly (`pnpm tsc --noEmit` passes). US3 and US4 phases can now begin.
 
@@ -41,9 +41,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T002 [P] [US1] Create `SettingsFAB` component: a `<button>` with inline gear SVG icon, `onClick` prop, `aria-label="Open settings"`, and `className="settings-fab"` in `src/features/settings/components/SettingsFAB.tsx`
-- [ ] T003 [P] [US1] Add `.settings-fab` CSS rule (`position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 50; width: 3rem; height: 3rem; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2)`) with light/dark theme-aware `background` and `color` custom property overrides in `src/App.css`
-- [ ] T004 [US1] Add `settingsPanelOpen` useState to `App.tsx`; render `<SettingsFAB onClick={() => setSettingsPanelOpen(true)} />`; remove `<SettingsPanel .../>` from the root `<main>` render in `src/App.tsx`
+- [X] T002 [P] [US1] Create `SettingsFAB` component: a `<button>` with inline gear SVG icon, `onClick` prop, `aria-label="Open settings"`, and `className="settings-fab"` in `src/features/settings/components/SettingsFAB.tsx`
+- [X] T003 [P] [US1] Add `.settings-fab` CSS rule (`position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 50; width: 3rem; height: 3rem; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2)`) with light/dark theme-aware `background` and `color` custom property overrides in `src/App.css`
+- [X] T004 [US1] Add `settingsPanelOpen` useState to `App.tsx`; render `<SettingsFAB onClick={() => setSettingsPanelOpen(true)} />`; remove `<SettingsPanel .../>` from the root `<main>` render in `src/App.tsx`
 
 **Checkpoint**: App runs. FAB is visible at bottom-right. Settings are no longer inline at the top. Clicking FAB has no effect yet (panel wired in Phase 4).
 
@@ -61,10 +61,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T005 [P] [US2] Create `SettingsSidePanel` component: renders a `<div className="side-panel-backdrop">` (onClick → `onClose`) and an `<aside className="side-panel">` containing a close `<button className="side-panel-close">✕</button>` and a child `<SettingsPanel startupWarnings={startupWarnings} rememberLastAlbum={rememberLastAlbum} />`; accepts `isOpen`, `onClose`, `startupWarnings`, `rememberLastAlbum` props; only renders when `isOpen` is true in `src/features/settings/components/SettingsSidePanel.tsx`
-- [ ] T006 [US2] Add `useEffect` ESC keydown listener to `SettingsSidePanel` that calls `onClose` when `isOpen` is `true`; clean up listener on unmount and when `isOpen` changes in `src/features/settings/components/SettingsSidePanel.tsx`
-- [ ] T007 [P] [US2] Add CSS rules: `.side-panel-backdrop` (`position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.4)`), `.side-panel` (`position: fixed; top: 0; right: 0; height: 100vh; width: 360px; z-index: 70; transform: translateX(100%); transition: transform 0.25s ease`), `.side-panel--open` (`transform: translateX(0)`), `.side-panel-close` (absolute top-right button), and dark-mode overrides for panel background in `src/App.css`
-- [ ] T008 [US2] Add `<SettingsSidePanel isOpen={settingsPanelOpen} onClose={() => setSettingsPanelOpen(false)} startupWarnings={startupWarnings} rememberLastAlbum={rememberLastAlbum} />` to `App.tsx` render; ensure no remaining direct `<SettingsPanel>` in root layout in `src/App.tsx`
+- [X] T005 [P] [US2] Create `SettingsSidePanel` component: renders a `<div className="side-panel-backdrop">` (onClick → `onClose`) and an `<aside className="side-panel">` containing a close `<button className="side-panel-close">✕</button>` and a child `<SettingsPanel startupWarnings={startupWarnings} rememberLastAlbum={rememberLastAlbum} />`; accepts `isOpen`, `onClose`, `startupWarnings`, `rememberLastAlbum` props; only renders when `isOpen` is true in `src/features/settings/components/SettingsSidePanel.tsx`
+- [X] T006 [US2] Add `useEffect` ESC keydown listener to `SettingsSidePanel` that calls `onClose` when `isOpen` is `true`; clean up listener on unmount and when `isOpen` changes in `src/features/settings/components/SettingsSidePanel.tsx`
+- [X] T007 [P] [US2] Add CSS rules: `.side-panel-backdrop` (`position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.4)`), `.side-panel` (`position: fixed; top: 0; right: 0; height: 100vh; width: 360px; z-index: 70; transform: translateX(100%); transition: transform 0.25s ease`), `.side-panel--open` (`transform: translateX(0)`), `.side-panel-close` (absolute top-right button), and dark-mode overrides for panel background in `src/App.css`
+- [X] T008 [US2] Add `<SettingsSidePanel isOpen={settingsPanelOpen} onClose={() => setSettingsPanelOpen(false)} startupWarnings={startupWarnings} rememberLastAlbum={rememberLastAlbum} />` to `App.tsx` render; ensure no remaining direct `<SettingsPanel>` in root layout in `src/App.tsx`
 
 **Checkpoint**: Click FAB → panel slides in from right with all settings. All three close gestures (X, backdrop, ESC) work. Settings save and apply as before.
 
@@ -82,11 +82,11 @@
 
 ### Implementation for User Story 4
 
-- [ ] T009 [P] [US4] Create `ImageViewer` component by extracting the `{viewerSession && (...)}` block from `LibraryView.tsx` into `src/features/library/components/ImageViewer.tsx` with `ImageViewerProps` matching the contracts definition (`session`, `image`, `loading`, `error`, `zoomLevel`, `onZoomIn`, `onZoomOut`, `onZoomReset`, `onPrev`, `onNext`, `onClose`, `thumbnailStripPinned`, `onToggleThumbnailStrip`, `thumbnailCache`, `loadThumbnailImage`)
-- [ ] T010 [US4] Add `prevImageSize: { width: number; height: number } | null` local state to `ImageViewer`; update it via `onLoad={(e) => setPrevImageSize({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })}` on the `<img>`; render `<div className="image-skeleton" style={{ aspectRatio: \`${prevImageSize.width}/${prevImageSize.height}\` }} />` in place of the image when `loading` is `true` and `prevImageSize` is set in `src/features/library/components/ImageViewer.tsx`
-- [ ] T011 [US4] Add `<div className="viewer-zoom-controls">` inside the image frame containing zoom-in (`+`), zoom-out (`−`), and reset (`↺`) `<button>` elements with `aria-label` attributes; wire each to `onZoomIn`, `onZoomOut`, `onZoomReset` props; apply `style={{ transform: \`scale(${zoomLevel})\`, transformOrigin: 'center' }}` to the `<img>` in `src/features/library/components/ImageViewer.tsx`
-- [ ] T012 [P] [US4] Add CSS: `.image-skeleton` (shimmer `@keyframes` animation, `background: linear-gradient(90deg, ...)`, `border-radius: 8px`, `width: 100%`, `max-height: 80vh`), update `.album-viewer-image-frame` to `min-height: 60vh; max-height: 80vh; overflow: auto; position: relative`, add `.viewer-zoom-controls` (`position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.25rem; z-index: 10`) in `src/App.css`
-- [ ] T013 [US4] Replace the extracted inline viewer block in `LibraryView.tsx` with `<ImageViewer session={viewerSession} image={viewerImage} loading={viewerLoading} error={viewerError} zoomLevel={zoomLevel} onZoomIn={() => setZoomLevel(zoomLevel + 0.25)} onZoomOut={() => setZoomLevel(zoomLevel - 0.25)} onZoomReset={() => setZoomLevel(1.0)} onPrev={...} onNext={...} onClose={closeViewer} thumbnailStripPinned={thumbnailStripPinned} onToggleThumbnailStrip={...} thumbnailCache={thumbnailCache} loadThumbnailImage={loadThumbnailImage} />` in `src/features/library/components/LibraryView.tsx`
+- [X] T009 [P] [US4] Create `ImageViewer` component by extracting the `{viewerSession && (...)}` block from `LibraryView.tsx` into `src/features/library/components/ImageViewer.tsx` with `ImageViewerProps` matching the contracts definition (`session`, `image`, `loading`, `error`, `zoomLevel`, `onZoomIn`, `onZoomOut`, `onZoomReset`, `onPrev`, `onNext`, `onClose`, `thumbnailStripPinned`, `onToggleThumbnailStrip`, `thumbnailCache`, `loadThumbnailImage`)
+- [X] T010 [US4] Add `prevImageSize: { width: number; height: number } | null` local state to `ImageViewer`; update it via `onLoad={(e) => setPrevImageSize({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })}` on the `<img>`; render `<div className="image-skeleton" style={{ aspectRatio: \`${prevImageSize.width}/${prevImageSize.height}\` }} />` in place of the image when `loading` is `true` and `prevImageSize` is set in `src/features/library/components/ImageViewer.tsx`
+- [X] T011 [US4] Add `<div className="viewer-zoom-controls">` inside the image frame containing zoom-in (`+`), zoom-out (`−`), and reset (`↺`) `<button>` elements with `aria-label` attributes; wire each to `onZoomIn`, `onZoomOut`, `onZoomReset` props; apply `style={{ transform: \`scale(${zoomLevel})\`, transformOrigin: 'center' }}` to the `<img>` in `src/features/library/components/ImageViewer.tsx`
+- [X] T012 [P] [US4] Add CSS: `.image-skeleton` (shimmer `@keyframes` animation, `background: linear-gradient(90deg, ...)`, `border-radius: 8px`, `width: 100%`, `max-height: 80vh`), update `.album-viewer-image-frame` to `min-height: 60vh; max-height: 80vh; overflow: auto; position: relative`, add `.viewer-zoom-controls` (`position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.25rem; z-index: 10`) in `src/App.css`
+- [X] T013 [US4] Replace the extracted inline viewer block in `LibraryView.tsx` with `<ImageViewer session={viewerSession} image={viewerImage} loading={viewerLoading} error={viewerError} zoomLevel={zoomLevel} onZoomIn={() => setZoomLevel(zoomLevel + 0.25)} onZoomOut={() => setZoomLevel(zoomLevel - 0.25)} onZoomReset={() => setZoomLevel(1.0)} onPrev={...} onNext={...} onClose={closeViewer} thumbnailStripPinned={thumbnailStripPinned} onToggleThumbnailStrip={...} thumbnailCache={thumbnailCache} loadThumbnailImage={loadThumbnailImage} />` in `src/features/library/components/LibraryView.tsx`
 
 **Checkpoint**: Open album. Image fills more vertical space. Navigate images — skeleton shows during load, no layout shift. Zoom controls appear at top-right; zoom in/out/reset all work. Zoom resets on navigation.
 
@@ -104,9 +104,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T014 [P] [US3] Add `visible: boolean` prop to `ThumbnailStrip`; apply `className={\`thumbnail-strip \${visible ? 'thumbnail-strip--visible' : 'thumbnail-strip--hidden'}\`}` in `src/features/library/components/ThumbnailStrip.tsx`
-- [ ] T015 [P] [US3] Add `.thumbnail-strip--visible` (`opacity: 1; max-height: 80px; pointer-events: auto`), `.thumbnail-strip--hidden` (`opacity: 0; max-height: 0; overflow: hidden; pointer-events: none`) with `transition: opacity 0.2s ease, max-height 0.2s ease` on the base `.thumbnail-strip` rule; update `.thumbnail-card` to `height: 64px` (was implicitly 96px) in `src/App.css`
-- [ ] T016 [US3] Add `isHovered: boolean` local state to `ImageViewer`; attach `onMouseEnter={() => setIsHovered(true)}` and `onMouseLeave={() => setIsHovered(false)}` to the root `<section>`; add a pin toggle `<button>` in the viewer actions toolbar that calls `onToggleThumbnailStrip`; pass `visible={isHovered || thumbnailStripPinned}` to `<ThumbnailStrip>` in `src/features/library/components/ImageViewer.tsx`
+- [X] T014 [P] [US3] Add `visible: boolean` prop to `ThumbnailStrip`; apply `className={\`thumbnail-strip \${visible ? 'thumbnail-strip--visible' : 'thumbnail-strip--hidden'}\`}` in `src/features/library/components/ThumbnailStrip.tsx`
+- [X] T015 [P] [US3] Add `.thumbnail-strip--visible` (`opacity: 1; max-height: 80px; pointer-events: auto`), `.thumbnail-strip--hidden` (`opacity: 0; max-height: 0; overflow: hidden; pointer-events: none`) with `transition: opacity 0.2s ease, max-height 0.2s ease` on the base `.thumbnail-strip` rule; update `.thumbnail-card` to `height: 64px` (was implicitly 96px) in `src/App.css`
+- [X] T016 [US3] Add `isHovered: boolean` local state to `ImageViewer`; attach `onMouseEnter={() => setIsHovered(true)}` and `onMouseLeave={() => setIsHovered(false)}` to the root `<section>`; add a pin toggle `<button>` in the viewer actions toolbar that calls `onToggleThumbnailStrip`; pass `visible={isHovered || thumbnailStripPinned}` to `<ThumbnailStrip>` in `src/features/library/components/ImageViewer.tsx`
 
 **Checkpoint**: Strip is hidden by default. Hovering over the viewer reveals it. Toggle button pins/unpins. Strip is visibly smaller than before.
 
@@ -124,8 +124,8 @@
 
 ### Implementation for User Story 5
 
-- [ ] T017 [P] [US5] Update `.album-list` rule to `grid-template-columns: repeat(auto-fill, minmax(180px, 180px)); justify-content: start` (replaces `auto-fit` with fixed column size for uniform card widths) in `src/App.css`
-- [ ] T018 [P] [US5] Update `.album-cover img` to `aspect-ratio: 3/4; height: unset; object-fit: cover` (replaces `height: 140px` with aspect-ratio-based sizing for consistent portrait covers across all albums) in `src/App.css`
+- [X] T017 [P] [US5] Update `.album-list` rule to `grid-template-columns: repeat(auto-fill, minmax(180px, 180px)); justify-content: start` (replaces `auto-fit` with fixed column size for uniform card widths) in `src/App.css`
+- [X] T018 [P] [US5] Update `.album-cover img` to `aspect-ratio: 3/4; height: unset; object-fit: cover` (replaces `height: 140px` with aspect-ratio-based sizing for consistent portrait covers across all albums) in `src/App.css`
 
 **Checkpoint**: All album cards are the same width. All covers are portrait-cropped at 3:4. No card is taller or shorter than another regardless of the native cover image dimensions.
 
@@ -137,10 +137,10 @@
 
 **Technical areas**: Frontend — Tests (Vitest + Testing Library), Manual validation
 
-- [ ] T019 [P] Write unit tests for `SettingsFAB` (renders gear icon, fires `onClick`) in `src/test/SettingsFAB.test.tsx`; write unit tests for `SettingsSidePanel` (X button calls `onClose`, backdrop click calls `onClose`, ESC keydown calls `onClose`, does not render when `isOpen=false`) in `src/test/SettingsSidePanel.test.tsx`
-- [ ] T020 [P] Write unit tests for `ImageViewer`: skeleton `<div>` rendered when `loading=true` and `prevImageSize` is set; `onZoomIn`, `onZoomOut`, `onZoomReset` callbacks fired when respective buttons are clicked in `src/test/ImageViewer.test.tsx`
-- [ ] T021 [P] Write unit tests for `libraryStore`: `setZoomLevel(5)` clamps to `4.0`; `setZoomLevel(0)` clamps to `0.25`; calling `goToImage()` resets `zoomLevel` to `1.0`; calling `openAlbumViewer()` resets `zoomLevel` to `1.0`; calling `closeViewer()` resets `thumbnailStripPinned` to `false` in `src/test/libraryStore.test.ts`
-- [ ] T022 Run `pnpm test` and confirm all tests pass; validate all 5 user stories against `specs/009-improve-ui/quickstart.md` with `pnpm tauri dev`
+- [X] T019 [P] Write unit tests for `SettingsFAB` (renders gear icon, fires `onClick`) in `src/test/SettingsFAB.test.tsx`; write unit tests for `SettingsSidePanel` (X button calls `onClose`, backdrop click calls `onClose`, ESC keydown calls `onClose`, does not render when `isOpen=false`) in `src/test/SettingsSidePanel.test.tsx`
+- [X] T020 [P] Write unit tests for `ImageViewer`: skeleton `<div>` rendered when `loading=true` and `prevImageSize` is set; `onZoomIn`, `onZoomOut`, `onZoomReset` callbacks fired when respective buttons are clicked in `src/test/ImageViewer.test.tsx`
+- [X] T021 [P] Write unit tests for `libraryStore`: `setZoomLevel(5)` clamps to `4.0`; `setZoomLevel(0)` clamps to `0.25`; calling `goToImage()` resets `zoomLevel` to `1.0`; calling `openAlbumViewer()` resets `zoomLevel` to `1.0`; calling `closeViewer()` resets `thumbnailStripPinned` to `false` in `src/test/libraryStore.test.ts`
+- [ ] T022 Run `pnpm test` and confirm all tests pass; validate all 5 user stories against `specs/009-improve-ui/quickstart.md` with `pnpm tauri dev` (currently blocked in this environment: Windows Application Control policy prevents loading Tauri native binding)
 
 **Checkpoint**: All tests green. All 5 quickstart validation tables pass. Feature complete.
 
