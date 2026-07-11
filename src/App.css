@@ -5,11 +5,17 @@
   font-weight: 400;
   color: #0f0f0f;
   background-color: #f6f6f6;
+  --color-bg: #f6f6f6;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
 }
 
 :root[data-theme="dark"] {
   color: #f8fafc;
   background-color: #0f172a;
+  --color-bg: #0f172a;
+  --color-surface: #111827;
+  --color-border: #334155;
 }
 
 :root[data-theme="dark"] body {
@@ -193,19 +199,32 @@ body {
 
 .album-cover {
   width: 100%;
-  min-height: 140px;
-  display: grid;
-  place-items: center;
+  aspect-ratio: 3 / 4;
   background: #ececec;
   border-radius: 8px;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .album-cover img {
   width: 100%;
-  height: unset;
-  aspect-ratio: 3 / 4;
+  height: 100%;
   object-fit: cover;
+}
+
+.album-cover-skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #e2e8f0 25%, #cbd5e1 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+}
+
+.album-cover-placeholder {
+  font-size: 2rem;
+  opacity: 0.4;
 }
 
 .album-details {
@@ -219,9 +238,9 @@ body {
 }
 
 .album-viewer {
-  background: #ffffff;
+  background: var(--color-surface);
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -235,6 +254,16 @@ body {
   gap: 1rem;
 }
 
+.viewer-back-btn {
+  border: 1px solid #d1d5db;
+  background: transparent;
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
 .album-viewer-counter {
   margin: 0;
   color: #475569;
@@ -243,12 +272,13 @@ body {
 .album-viewer-image-frame {
   min-height: 60vh;
   max-height: 80vh;
-  background: #f1f5f9;
+  background: var(--color-bg);
   border-radius: 8px;
   display: grid;
   place-items: center;
-  overflow: auto;
+  overflow: hidden;
   position: relative;
+  user-select: none;
 }
 
 .album-viewer-image-frame img {
@@ -294,6 +324,35 @@ body {
   }
 }
 
+.viewer-thumbnail-area {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.thumbnail-strip-wrapper {
+  overflow: hidden;
+  transition: max-height 0.2s ease, opacity 0.15s ease;
+}
+
+.thumbnail-strip-wrapper--visible {
+  max-height: 160px;
+  opacity: 1;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.5rem;
+}
+
+.thumbnail-strip-wrapper--hidden {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.thumbnail-hover-zone {
+  height: 16px;
+  width: 100%;
+  cursor: default;
+}
+
 .thumbnail-strip {
   display: flex;
   gap: 0.75rem;
@@ -319,8 +378,8 @@ body {
 
 .thumbnail-card {
   flex: 0 0 auto;
-  width: 96px;
-  height: 64px;
+  width: 140px;
+  height: 100px;
   border: 1px solid #d1d5db;
   border-radius: 10px;
   background: #f8fafc;

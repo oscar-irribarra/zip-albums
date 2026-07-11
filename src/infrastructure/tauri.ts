@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
   DeleteAlbumResponse,
+  GetAlbumCoverRequest,
+  GetAlbumCoverResponse,
   ImportAlbumResponse,
   LibraryResponse,
   LoadAlbumImageRequest,
@@ -18,6 +20,10 @@ import type {
 
 export function getLibrary() {
   return invoke<LibraryResponse>( "get_library" );
+}
+
+export function getAlbumCover( payload: GetAlbumCoverRequest ) {
+  return invoke<GetAlbumCoverResponse>( "get_album_cover", { payload } );
 }
 
 export function deleteAlbum( payload: { album_id: string } ) {

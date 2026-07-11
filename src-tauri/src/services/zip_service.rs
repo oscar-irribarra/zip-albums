@@ -88,6 +88,9 @@ impl ZipService {
             return Err(ZipInspectionError::NoSupportedImages);
         }
 
+        let mut image_entries = image_entries;
+        image_entries.sort_unstable();
+
         let image_count = image_entries.len();
         let cover_index = if image_count > 0 { 0 } else { 0 };
 
@@ -98,7 +101,10 @@ impl ZipService {
         })
     }
 
-    pub fn load_image_by_index(path: &Path, image_index: usize) -> Result<LoadedImage, ZipImageLoadError> {
+    pub fn load_image_by_index(
+        path: &Path,
+        image_index: usize,
+    ) -> Result<LoadedImage, ZipImageLoadError> {
         let file = File::open(path).map_err(|_| ZipImageLoadError::Io)?;
         let mut archive = zip::ZipArchive::new(file).map_err(|_| ZipImageLoadError::Corrupted)?;
 
@@ -116,6 +122,8 @@ impl ZipService {
         if supported_entries.is_empty() {
             return Err(ZipImageLoadError::UnsupportedImage);
         }
+
+        supported_entries.sort_unstable_by(|a, b| a.1.to_lowercase().cmp(&b.1.to_lowercase()));
 
         if image_index >= supported_entries.len() {
             return Err(ZipImageLoadError::IndexOutOfRange);
@@ -282,5 +290,41 @@ mod tests {
 
         let loaded = ZipService::load_image_by_index(&archive_path, 4);
         assert_eq!(loaded, Err(ZipImageLoadError::IndexOutOfRange));
+    }
+
+    #[test]
+    fn load_image_by_index_zero_returns_alphabetically_first_file() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-sort-test-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = std::fs::create_dir_all(&temp_dir);
+        let archive_path = temp_dir.join("sorted.zip");
+
+        // Write entries in reverse order: 02, 01, 00
+        let file = File::create(&archive_path).unwrap();
+        let mut zip = zip::ZipWriter::new(file);
+        let options = zip::write::FileOptions::default();
+        zip.start_file("02.jpg", options).unwrap();
+        zip.write_all(b"second-image").unwrap();
+        zip.start_file("01.jpg", options).unwrap();
+        zip.write_all(b"middle-image").unwrap();
+        zip.start_file("00.jpg", options).unwrap();
+        zip.write_all(b"first-image").unwrap();
+        zip.finish().unwrap();
+
+        let loaded = ZipService::load_image_by_index(&archive_path, 0).unwrap();
+        let base64_part = loaded.image_source.split(',').nth(1).unwrap_or("");
+        use base64::Engine;
+        let decoded = base64::engine::general_purpose::STANDARD
+            .decode(base64_part)
+            .unwrap();
+        assert_eq!(
+            decoded, b"first-image",
+            "Index 0 must return the alphabetically-first file (00.jpg)"
+        );
     }
 }

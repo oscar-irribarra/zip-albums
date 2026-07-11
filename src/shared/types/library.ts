@@ -1,5 +1,15 @@
 export type SortOrder = "name" | "date";
 
+export interface GetAlbumCoverRequest {
+  album_id: string;
+}
+
+export interface GetAlbumCoverResponse {
+  album_id: string;
+  image_source: string;
+  mime_type: string;
+}
+
 export interface AlbumSummary {
   id: string;
   title: string;

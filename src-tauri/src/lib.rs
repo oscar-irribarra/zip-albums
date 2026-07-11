@@ -125,6 +125,18 @@ pub struct SetLastOpenedAlbumResponse {
     pub updated_at: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct GetAlbumCoverRequest {
+    pub album_id: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct GetAlbumCoverResponse {
+    pub album_id: String,
+    pub image_source: String,
+    pub mime_type: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ViewerCommandError {
     pub code: String,
@@ -378,9 +390,7 @@ fn delete_album(payload: DeleteAlbumRequest) -> Result<DeleteAlbumResponse, Stri
         .iter()
         .find(|item| item.id == payload.album_id);
 
-    if let Some(album) = album {
-        let album_path = PathBuf::from(&album.path);
-        FileSystemService::delete_file(&album_path).map_err(|err| err.to_string())?;
+    if let Some(_album) = album {
         let _ = MetadataService::remove_album(&catalog_path, &payload.album_id)
             .map_err(|err| err.to_string())?;
         Ok(DeleteAlbumResponse {
@@ -696,6 +706,35 @@ fn set_last_opened_album(
     })
 }
 
+#[tauri::command]
+fn get_album_cover(payload: GetAlbumCoverRequest) -> Result<GetAlbumCoverResponse, String> {
+    let base_dir = std::env::current_dir().map_err(|err| err.to_string())?;
+    let album_dir =
+        FileSystemService::resolve_album_directory(&base_dir).map_err(|err| err.to_string())?;
+    let catalog_path = MetadataService::catalog_path(&album_dir);
+    let catalog = MetadataService::load_catalog(&catalog_path).map_err(|err| err.to_string())?;
+
+    let album = catalog
+        .albums
+        .iter()
+        .find(|a| a.id == payload.album_id)
+        .ok_or_else(|| "Album not found".to_string())?;
+
+    let zip_path = PathBuf::from(&album.path);
+    let loaded = ZipService::load_image_by_index(&zip_path, 0).map_err(|err| match err {
+        ZipImageLoadError::IndexOutOfRange => "No images in album".to_string(),
+        ZipImageLoadError::Corrupted => "ZIP archive is corrupted".to_string(),
+        ZipImageLoadError::UnsupportedImage => "No supported images in ZIP".to_string(),
+        ZipImageLoadError::Io => "ZIP file not accessible".to_string(),
+    })?;
+
+    Ok(GetAlbumCoverResponse {
+        album_id: payload.album_id,
+        image_source: loaded.image_source,
+        mime_type: loaded.mime_type,
+    })
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -711,7 +750,8 @@ pub fn run() {
             save_reading_progress,
             get_startup_context,
             update_user_settings,
-            set_last_opened_album
+            set_last_opened_album,
+            get_album_cover
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -1195,6 +1235,109 @@ mod tests {
         let after = MetadataService::load_catalog(&catalog_path).unwrap();
         assert!(after.reading_progress.is_empty());
         assert_eq!(after.albums.len(), before.albums.len());
+
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
+
+    #[test]
+    fn delete_album_does_not_delete_zip_file() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-safe-delete-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        let zip_path = temp_dir.join("safe.zip");
+        create_zip(&zip_path, &[("00.png", b"png-data")]);
+        let catalog_path = MetadataService::catalog_path(&temp_dir);
+        MetadataService::add_album(
+            &catalog_path,
+            AlbumMetadata {
+                id: "safe".to_string(),
+                title: "Safe".to_string(),
+                path: zip_path.to_string_lossy().to_string(),
+                image_count: 1,
+                cover_index: 0,
+                imported_at: "0".to_string(),
+                last_opened_at: None,
+            },
+        )
+        .unwrap();
+
+        let response = delete_album(DeleteAlbumRequest {
+            album_id: "safe".to_string(),
+        })
+        .unwrap();
+
+        assert!(response.success);
+        // ZIP must still exist on disk
+        assert!(
+            zip_path.exists(),
+            "ZIP file must not be deleted by delete_album"
+        );
+        // Catalog entry must be removed
+        let catalog = MetadataService::load_catalog(&catalog_path).unwrap();
+        assert!(catalog.albums.iter().all(|a| a.id != "safe"));
+
+        std::env::set_current_dir(old_cwd).unwrap();
+    }
+
+    #[test]
+    fn get_album_cover_returns_first_sorted_image() {
+        let _lock = cwd_test_lock().lock().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!(
+            "library-cover-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+        let old_cwd = std::env::current_dir().unwrap();
+        std::env::set_current_dir(&temp_dir).unwrap();
+
+        // Write 01.png first in the ZIP, then 00.png — sort must pick 00.png
+        let zip_path = temp_dir.join("cover.zip");
+        create_zip(
+            &zip_path,
+            &[("01.png", b"second-image"), ("00.png", b"first-image")],
+        );
+        let catalog_path = MetadataService::catalog_path(&temp_dir);
+        MetadataService::add_album(
+            &catalog_path,
+            AlbumMetadata {
+                id: "cover".to_string(),
+                title: "Cover".to_string(),
+                path: zip_path.to_string_lossy().to_string(),
+                image_count: 2,
+                cover_index: 0,
+                imported_at: "0".to_string(),
+                last_opened_at: None,
+            },
+        )
+        .unwrap();
+
+        let response = get_album_cover(GetAlbumCoverRequest {
+            album_id: "cover".to_string(),
+        })
+        .unwrap();
+
+        // The image_source is a base64 data URL; decode and compare bytes
+        let base64_part = response.image_source.split(',').nth(1).unwrap_or("");
+        use base64::Engine;
+        let decoded = base64::engine::general_purpose::STANDARD
+            .decode(base64_part)
+            .unwrap();
+        assert_eq!(
+            decoded, b"first-image",
+            "Cover must be the alphabetically-first image (00.png)"
+        );
 
         std::env::set_current_dir(old_cwd).unwrap();
     }

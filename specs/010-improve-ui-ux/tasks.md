@@ -10,9 +10,9 @@
 
 **Purpose**: Add the new TypeScript types, infrastructure function, and folder structure that every user story depends on. Safe to run in parallel — each task touches a different file.
 
-- [ ] T001 [P] Add `GetAlbumCoverRequest` and `GetAlbumCoverResponse` types to `src/shared/types/library.ts`
-- [ ] T002 [P] Add `getAlbumCover(payload: GetAlbumCoverRequest)` Tauri wrapper to `src/infrastructure/tauri.ts`
-- [ ] T003 [P] Create `src/features/viewer/` directory with an empty `src/features/viewer/index.ts` placeholder
+- [X] T001 [P] Add `GetAlbumCoverRequest` and `GetAlbumCoverResponse` types to `src/shared/types/library.ts`
+- [X] T002 [P] Add `getAlbumCover(payload: GetAlbumCoverRequest)` Tauri wrapper to `src/infrastructure/tauri.ts`
+- [X] T003 [P] Create `src/features/viewer/` directory with an empty `src/features/viewer/index.ts` placeholder
 
 **Checkpoint**: TypeScript compiles. Infrastructure binding for `get_album_cover` exists. Viewer feature folder is ready.
 
@@ -24,8 +24,8 @@
 
 **⚠️ CRITICAL**: No user story implementation can be validated until this phase is complete.
 
-- [ ] T004 Sort image entries ascending by filename in `ZipService::inspect_album_checked` and `ZipService::load_image_by_index` in `src-tauri/src/services/zip_service.rs`
-- [ ] T005 Add `GetAlbumCoverRequest`, `GetAlbumCoverResponse` Rust types and `get_album_cover` Tauri command to `src-tauri/src/lib.rs`; register the command in `tauri::generate_handler!`
+- [X] T004 Sort image entries ascending by filename in `ZipService::inspect_album_checked` and `ZipService::load_image_by_index` in `src-tauri/src/services/zip_service.rs`
+- [X] T005 Add `GetAlbumCoverRequest`, `GetAlbumCoverResponse` Rust types and `get_album_cover` Tauri command to `src-tauri/src/lib.rs`; register the command in `tauri::generate_handler!`
 
 **Checkpoint**: `cargo test` passes. `get_album_cover` command resolves album path from catalog, calls `ZipService::load_image_by_index(path, 0)`, and returns a base64 data URL.
 
@@ -37,12 +37,12 @@
 
 **Independent Test**: Launch the app. Verify: (1) album grid renders with ZIP-sourced covers; (2) no viewer controls appear; (3) the Import ZIP button is in the toolbar; (4) opening an album switches to a viewer screen without the library grid visible.
 
-- [ ] T006 [P] [US1] Implement lazy cover loading in `src/features/library/components/AlbumCard.tsx`: call `getAlbumCover({ album_id })` in `useEffect` on mount; store result in local `coverState`; render cover image or skeleton while loading; render placeholder icon on error; remove `album.cover_data ?? "/vite.svg"` fallback
-- [ ] T007 [P] [US1] Add CSS custom property theme tokens (`--color-bg`, `--color-surface`, `--color-border`) to `:root` and `:root[data-theme="dark"]` blocks in `src/App.css`; update `.album-cover` to use `aspect-ratio: 3/4` and `object-fit: cover` for aspect-ratio-preserving covers
-- [ ] T008 [P] [US1] Create `src/features/viewer/components/ViewerScreen.tsx` as the initial standalone viewer: read all session/image/cache/zoom state directly from `useLibraryStore`; render header (album name, counter), image frame with zoom controls, navigation buttons (Previous, Thumbnails toggle, Next, Close); include `ThumbnailStrip` imported from its current location (`library/components/ThumbnailStrip`)
-- [ ] T009 [US1] Remove the `{viewerSession && <ImageViewer ... />}` block and all viewer-specific handlers (`handlePrevious`, `handleNext`, `handleThumbnailSelect`, keyboard shortcut `useEffect`, `shortcutError` state) from `src/features/library/components/LibraryView.tsx`; leave only the album grid, toolbar, and import/delete feedback
-- [ ] T010 [US1] Update `src/App.tsx`: import `ViewerScreen` from `features/viewer`; replace unconditional `<LibraryView />` with `viewerSession ? <ViewerScreen /> : <LibraryView ... />`; keep `SettingsFAB` and `SettingsSidePanel` outside the conditional
-- [ ] T011 [US1] Update `src/features/library/index.ts` to remove `ThumbnailStrip` export (it will live in `viewer/`); update `src/features/viewer/index.ts` to export `ViewerScreen`
+- [X] T006 [P] [US1] Implement lazy cover loading in `src/features/library/components/AlbumCard.tsx`: call `getAlbumCover({ album_id })` in `useEffect` on mount; store result in local `coverState`; render cover image or skeleton while loading; render placeholder icon on error; remove `album.cover_data ?? "/vite.svg"` fallback
+- [X] T007 [P] [US1] Add CSS custom property theme tokens (`--color-bg`, `--color-surface`, `--color-border`) to `:root` and `:root[data-theme="dark"]` blocks in `src/App.css`; update `.album-cover` to use `aspect-ratio: 3/4` and `object-fit: cover` for aspect-ratio-preserving covers
+- [X] T008 [P] [US1] Create `src/features/viewer/components/ViewerScreen.tsx` as the initial standalone viewer: read all session/image/cache/zoom state directly from `useLibraryStore`; render header (album name, counter), image frame with zoom controls, navigation buttons (Previous, Thumbnails toggle, Next, Close); include `ThumbnailStrip` imported from its current location (`library/components/ThumbnailStrip`)
+- [X] T009 [US1] Remove the `{viewerSession && <ImageViewer ... />}` block and all viewer-specific handlers (`handlePrevious`, `handleNext`, `handleThumbnailSelect`, keyboard shortcut `useEffect`, `shortcutError` state) from `src/features/library/components/LibraryView.tsx`; leave only the album grid, toolbar, and import/delete feedback
+- [X] T010 [US1] Update `src/App.tsx`: import `ViewerScreen` from `features/viewer`; replace unconditional `<LibraryView />` with `viewerSession ? <ViewerScreen /> : <LibraryView ... />`; keep `SettingsFAB` and `SettingsSidePanel` outside the conditional
+- [X] T011 [US1] Update `src/features/library/index.ts` to remove `ThumbnailStrip` export (it will live in `viewer/`); update `src/features/viewer/index.ts` to export `ViewerScreen`
 
 **Checkpoint**: `pnpm build` succeeds. Opening the app shows only the album grid. Album cards show ZIP cover images with correct aspect ratio. Clicking Open switches to the viewer screen (no library grid visible). Import ZIP button is absent in viewer.
 
@@ -54,8 +54,8 @@
 
 **Independent Test**: Import an album, note the ZIP path, click Delete, confirm; verify the ZIP still exists on the filesystem and the album card is gone from the library.
 
-- [ ] T012 [US2] Remove the two lines that call `FileSystemService::delete_file` from the `delete_album` command in `src-tauri/src/lib.rs`; keep only the `MetadataService::remove_album` call and the success response
-- [ ] T013 [US2] Update the `window.confirm` text in `src/features/library/components/AlbumCard.tsx` from `"Delete this album and its ZIP file?"` to `"Remove this album from the library?"`
+- [X] T012 [US2] Remove the two lines that call `FileSystemService::delete_file` from the `delete_album` command in `src-tauri/src/lib.rs`; keep only the `MetadataService::remove_album` call and the success response
+- [X] T013 [US2] Update the `window.confirm` text in `src/features/library/components/AlbumCard.tsx` from `"Delete this album and its ZIP file?"` to `"Remove this album from the library?"`
 
 **Checkpoint**: `cargo test` passes (existing delete tests must be updated to NOT assert file removal). Deleting an album removes only the catalog entry; the ZIP survives on disk.
 
@@ -67,10 +67,10 @@
 
 **Independent Test**: Open an album. Verify: (1) Back button returns to library; (2) library grid never appears behind the viewer; (3) zooming in and dragging stays within bounds; (4) viewer background matches the active theme; (5) arrow-key navigation works from within the viewer.
 
-- [ ] T014 [US3] Move `src/features/library/components/ThumbnailStrip.tsx` to `src/features/viewer/components/ThumbnailStrip.tsx`; update the import in `ViewerScreen.tsx` to the new path; update `src/features/viewer/index.ts` to also export `ThumbnailStrip`
-- [ ] T015 [US3] Add a Back button (`← Back`) to `ViewerScreen.tsx` in `src/features/viewer/components/ViewerScreen.tsx` that calls `closeViewer()`; add `useEffect` for keyboard shortcuts (ArrowLeft/Right, Home/End, f, Escape) that was previously in `LibraryView`; remove the plain "Close Viewer" button
-- [ ] T016 [US3] Implement pointer-capture zoom+pan in `src/features/viewer/components/ViewerScreen.tsx`: add `panOffset: { x, y }` local state (reset to `{0,0}` on image navigation); add `frameRef` to the image frame container; implement `onPointerDown`/`onPointerMove`/`onPointerUp` handlers with `setPointerCapture`; clamp pan using `(naturalSize × zoom − frameSize) / 2` formula; apply `transform: translate(${x}px,${y}px) scale(${zoom})` to the `<img>`; set `cursor: grab` when `zoom > 1`, `grabbing` while dragging; disable drag when `zoom <= 1`
-- [ ] T017 [US3] Replace hardcoded `#f1f5f9` and `#ffffff` background values in `.album-viewer-image-frame` and `.album-viewer` CSS rules in `src/App.css` with `background: var(--color-surface)` and `background: var(--color-bg)` respectively
+- [X] T014 [US3] Move `src/features/library/components/ThumbnailStrip.tsx` to `src/features/viewer/components/ThumbnailStrip.tsx`; update the import in `ViewerScreen.tsx` to the new path; update `src/features/viewer/index.ts` to also export `ThumbnailStrip`
+- [X] T015 [US3] Add a Back button (`← Back`) to `ViewerScreen.tsx` in `src/features/viewer/components/ViewerScreen.tsx` that calls `closeViewer()`; add `useEffect` for keyboard shortcuts (ArrowLeft/Right, Home/End, f, Escape) that was previously in `LibraryView`; remove the plain "Close Viewer" button
+- [X] T016 [US3] Implement pointer-capture zoom+pan in `src/features/viewer/components/ViewerScreen.tsx`: add `panOffset: { x, y }` local state (reset to `{0,0}` on image navigation); add `frameRef` to the image frame container; implement `onPointerDown`/`onPointerMove`/`onPointerUp` handlers with `setPointerCapture`; clamp pan using `(naturalSize × zoom − frameSize) / 2` formula; apply `transform: translate(${x}px,${y}px) scale(${zoom})` to the `<img>`; set `cursor: grab` when `zoom > 1`, `grabbing` while dragging; disable drag when `zoom <= 1`
+- [X] T017 [US3] Replace hardcoded `#f1f5f9` and `#ffffff` background values in `.album-viewer-image-frame` and `.album-viewer` CSS rules in `src/App.css` with `background: var(--color-surface)` and `background: var(--color-bg)` respectively
 
 **Checkpoint**: `pnpm build` succeeds. Back button returns to library. Viewer fills the screen with no library grid. Zooming + dragging stays within frame. Background is dark in dark mode, light in light mode. Arrow keys navigate images only while viewer is open.
 
@@ -82,9 +82,9 @@
 
 **Independent Test**: Open the viewer. Verify: (1) no strip visible on open; (2) hovering the bottom bar reveals strip; (3) moving away hides strip; (4) Thumbnails button pins/unpins the strip independent of hover; (5) strip has a visible separator from the image; (6) thumbnails are noticeably larger.
 
-- [ ] T018 [US4] Refactor thumbnail visibility state in `src/features/viewer/components/ViewerScreen.tsx`: add `hoverVisible: boolean` local state controlled by `onMouseEnter`/`onMouseLeave` on a dedicated hover-zone element; replace the old `isHovered` on the whole viewer section; keep `thumbnailStripPinned` from store; compute `visible = pinned || hoverVisible`; render `<ThumbnailStrip>` inside a `thumbnail-strip-wrapper` div; render a `<div className="thumbnail-hover-zone">` below it (always visible 16px bar)
-- [ ] T019 [P] [US4] Add `thumbnail-hover-zone`, `thumbnail-strip-wrapper`, `thumbnail-strip-wrapper--visible`, and `thumbnail-strip-wrapper--hidden` CSS rules to `src/App.css`; increase `.thumbnail-card` width from `96px` to `140px` and height from `64px` to `100px`; add `border-top: 1px solid var(--color-border)` to the visible wrapper for visual separation
-- [ ] T020 [US4] Remove the now-unused `onMouseEnter`/`onMouseLeave` handlers from the root `<section>` of `ViewerScreen.tsx`; remove the `isHovered` local state; ensure the `visible` prop passed to `<ThumbnailStrip>` uses the new `visible = pinned || hoverVisible` expression
+- [X] T018 [US4] Refactor thumbnail visibility state in `src/features/viewer/components/ViewerScreen.tsx`: add `hoverVisible: boolean` local state controlled by `onMouseEnter`/`onMouseLeave` on a dedicated hover-zone element; replace the old `isHovered` on the whole viewer section; keep `thumbnailStripPinned` from store; compute `visible = pinned || hoverVisible`; render `<ThumbnailStrip>` inside a `thumbnail-strip-wrapper` div; render a `<div className="thumbnail-hover-zone">` below it (always visible 16px bar)
+- [X] T019 [P] [US4] Add `thumbnail-hover-zone`, `thumbnail-strip-wrapper`, `thumbnail-strip-wrapper--visible`, and `thumbnail-strip-wrapper--hidden` CSS rules to `src/App.css`; increase `.thumbnail-card` width from `96px` to `140px` and height from `64px` to `100px`; add `border-top: 1px solid var(--color-border)` to the visible wrapper for visual separation
+- [X] T020 [US4] Remove the now-unused `onMouseEnter`/`onMouseLeave` handlers from the root `<section>` of `ViewerScreen.tsx`; remove the `isHovered` local state; ensure the `visible` prop passed to `<ThumbnailStrip>` uses the new `visible = pinned || hoverVisible` expression
 
 **Checkpoint**: Strip is hidden on viewer open. Hovering the bottom bar shows it; moving away hides it. Toggle button pins/unpins. Strip is separated from image and larger than before.
 
@@ -94,11 +94,11 @@
 
 **Purpose**: Verify all correctness guarantees at the Rust level, confirm TypeScript compilation, and validate the full user experience against the quickstart scenarios.
 
-- [ ] T021 [P] Add Rust unit test `get_album_cover_returns_first_sorted_image`: create a test ZIP with `01.png` first then `00.png`; call `get_album_cover` and assert the returned `image_source` contains bytes from `00.png` — in `src-tauri/src/lib.rs`
-- [ ] T022 [P] Add Rust unit test `delete_album_does_not_delete_zip_file`: import a test album, call `delete_album`, assert the ZIP still exists on disk and the catalog no longer contains the entry — in `src-tauri/src/lib.rs`
-- [ ] T023 [P] Add Rust unit test `zip_service_sorts_image_entries_ascending`: create a ZIP with entries in reverse order (`02.jpg`, `01.jpg`, `00.jpg`); call `load_image_by_index(path, 0)` and assert it returns the bytes from `00.jpg` — in `src-tauri/src/services/zip_service.rs`
-- [ ] T024 Run `cargo test` from `src-tauri/` and confirm all tests pass including T021–T023 and the existing delete/cover tests
-- [ ] T025 Run `pnpm build` from the repository root and confirm zero TypeScript errors
+- [X] T021 [P] Add Rust unit test `get_album_cover_returns_first_sorted_image`: create a test ZIP with `01.png` first then `00.png`; call `get_album_cover` and assert the returned `image_source` contains bytes from `00.png` — in `src-tauri/src/lib.rs`
+- [X] T022 [P] Add Rust unit test `delete_album_does_not_delete_zip_file`: import a test album, call `delete_album`, assert the ZIP still exists on disk and the catalog no longer contains the entry — in `src-tauri/src/lib.rs`
+- [X] T023 [P] Add Rust unit test `zip_service_sorts_image_entries_ascending`: create a ZIP with entries in reverse order (`02.jpg`, `01.jpg`, `00.jpg`); call `load_image_by_index(path, 0)` and assert it returns the bytes from `00.jpg` — in `src-tauri/src/services/zip_service.rs`
+- [X] T024 Run `cargo test` from `src-tauri/` and confirm all tests pass including T021–T023 and the existing delete/cover tests
+- [X] T025 Run `pnpm build` from the repository root and confirm zero TypeScript errors
 - [ ] T026 Execute all 8 manual validation scenarios in `specs/010-improve-ui-ux/quickstart.md` and confirm each passes
 
 **Checkpoint**: All Rust tests green. TypeScript build clean. All quickstart scenarios pass.
