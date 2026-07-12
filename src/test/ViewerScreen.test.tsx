@@ -53,6 +53,8 @@ beforeEach( () => {
   // jsdom does not implement pointer capture — stub to prevent errors.
   HTMLElement.prototype.setPointerCapture = vi.fn();
   HTMLElement.prototype.releasePointerCapture = vi.fn();
+  // hasPointerCapture defaults to false: capture was not acquired unless explicitly set.
+  HTMLElement.prototype.hasPointerCapture = vi.fn().mockReturnValue( false );
 } );
 
 // ─── US1: Zoom In and Out ─────────────────────────────────────────────────────
@@ -133,5 +135,58 @@ describe( "ViewerScreen — Reset (US3)", () => {
     expect( screen.getByRole( "img" ) ).toHaveStyle( {
       transform: "translate(0px, 0px) scale(1)",
     } );
+  } );
+} );
+
+// ─── US4: Pointer Capture Guard ───────────────────────────────────────────────
+
+describe( "ViewerScreen — Pointer Capture Guard (US4)", () => {
+  it( "Test A: pointerDown on a zoom button does NOT call setPointerCapture", () => {
+    render( <ViewerScreen /> );
+
+    const zoomInButton = screen.getByRole( "button", { name: /zoom in/i } );
+    fireEvent.pointerDown( zoomInButton, { pointerId: 1 } );
+
+    expect( HTMLElement.prototype.setPointerCapture ).not.toHaveBeenCalled();
+  } );
+
+  it( "Test B: pointerDown on the image frame (non-button) calls setPointerCapture once", () => {
+    render( <ViewerScreen /> );
+
+    const frame = document.querySelector( ".album-viewer-image-frame" ) as HTMLElement;
+    fireEvent.pointerDown( frame, { clientX: 0, clientY: 0, pointerId: 1 } );
+
+    expect( HTMLElement.prototype.setPointerCapture ).toHaveBeenCalledOnce();
+  } );
+
+  it( "Test C: drag on the frame still updates the image transform after a zoom button click", () => {
+    render( <ViewerScreen /> );
+
+    // Click zoom-in (must not start a drag).
+    fireEvent.click( screen.getByRole( "button", { name: /zoom in/i } ) );
+
+    // Subsequent drag must work normally.
+    const frame = document.querySelector( ".album-viewer-image-frame" ) as HTMLElement;
+    fireEvent.pointerDown( frame, { clientX: 0, clientY: 0, pointerId: 1 } );
+    fireEvent.pointerMove( frame, { clientX: 40, clientY: 20, pointerId: 1 } );
+    fireEvent.pointerUp( frame, { pointerId: 1 } );
+
+    // zoomLevel mock stays 1.0 because setZoomLevel is a mock.
+    expect( screen.getByRole( "img" ) ).toHaveStyle( {
+      transform: "translate(40px, 20px) scale(1)",
+    } );
+  } );
+
+  it( "Test D: pointerDown on zoom button + pointerUp on frame does NOT call releasePointerCapture", () => {
+    render( <ViewerScreen /> );
+
+    // Simulate the problematic sequence: button down, frame up.
+    const zoomInButton = screen.getByRole( "button", { name: /zoom in/i } );
+    const frame = document.querySelector( ".album-viewer-image-frame" ) as HTMLElement;
+    fireEvent.pointerDown( zoomInButton, { pointerId: 1 } );
+    fireEvent.pointerUp( frame, { pointerId: 1 } );
+
+    // Guard prevented capture from being set, so release must NOT be called.
+    expect( HTMLElement.prototype.releasePointerCapture ).not.toHaveBeenCalled();
   } );
 } );

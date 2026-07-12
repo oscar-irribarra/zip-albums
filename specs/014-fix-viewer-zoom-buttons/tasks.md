@@ -13,7 +13,7 @@
 **Purpose**: Confirm the development environment is ready for this fix. No project bootstrapping
 is required — the fix targets a single existing React component.
 
-- [ ] T001 Verify `pnpm test` passes with 0 failures before making any changes (baseline)
+- [X] T001 Verify `pnpm test` passes with 0 failures before making any changes (baseline)
 
 **Checkpoint**: Baseline green — no regressions before work begins.
 
@@ -25,19 +25,19 @@ is required — the fix targets a single existing React component.
 that all three zoom-button user stories depend on. They must be in place before any story can be
 validated.
 
-- [ ] T002 Add `isInteractiveTarget(target: EventTarget | null): boolean` helper function above the
+- [X] T002 Add `isInteractiveTarget(target: EventTarget | null): boolean` helper function above the
   `ViewerScreen` function body in
   `src/features/viewer/components/ViewerScreen.tsx`.
   The function must return `true` when `e.target` is inside `.viewer-zoom-controls` or any
   `button | a | input | textarea | select` element (using `el.closest`). It must return `false`
   for plain `<div>` or `<img>` elements.
 
-- [ ] T003 Add early-return guard at the top of `handlePointerDown` in
+- [X] T003 Add early-return guard at the top of `handlePointerDown` in
   `src/features/viewer/components/ViewerScreen.tsx`:
   `if (isInteractiveTarget(e.target)) return;`
   This must appear before `isDragging.current = true` and before `setPointerCapture` is called.
 
-- [ ] T004 Add `hasPointerCapture` safety guard to `handlePointerUp` in
+- [X] T004 Add `hasPointerCapture` safety guard to `handlePointerUp` in
   `src/features/viewer/components/ViewerScreen.tsx`:
   only call `e.currentTarget.releasePointerCapture(e.pointerId)` when
   `e.currentTarget.hasPointerCapture?.(e.pointerId)` is truthy.
@@ -58,14 +58,14 @@ to confirm clamping at the maximum.
 
 ### Tests for User Story 1
 
-- [ ] T005 [P] [US1] In `src/test/ViewerScreen.test.tsx`, add a test group
+- [X] T005 [P] [US1] In `src/test/ViewerScreen.test.tsx`, add a test group
   `"ViewerScreen — Zoom In/Out (US1)"` with the following assertions:
   - `fireEvent.click` on the "Zoom In" button at `zoomLevel = 1.0` → `setZoomLevel` called with `1.1`
   - `fireEvent.click` on "Zoom In" at `zoomLevel = 4.0` → `setZoomLevel` called with `4.0` (clamped)
 
 ### Implementation for User Story 1
 
-- [ ] T006 [P] [US1] Confirm `handleZoomIn` in
+- [X] T006 [P] [US1] Confirm `handleZoomIn` in
   `src/features/viewer/components/ViewerScreen.tsx`
   calls `setZoomLevel(Math.min(ZOOM_MAX, zoomLevel + ZOOM_STEP))` where
   `ZOOM_STEP = 0.10` and `ZOOM_MAX = 4.0`.
@@ -84,14 +84,14 @@ and confirm it stops.
 
 ### Tests for User Story 2
 
-- [ ] T007 [P] [US2] In `src/test/ViewerScreen.test.tsx`, within the
+- [X] T007 [P] [US2] In `src/test/ViewerScreen.test.tsx`, within the
   `"ViewerScreen — Zoom In/Out (US1)"` group (or a dedicated US2 group), add:
   - `fireEvent.click` on "Zoom Out" at `zoomLevel = 1.0` → `setZoomLevel` called with `0.9`
   - `fireEvent.click` on "Zoom Out" at `zoomLevel = 0.25` → `setZoomLevel` called with `0.25` (clamped)
 
 ### Implementation for User Story 2
 
-- [ ] T008 [P] [US2] Confirm `handleZoomOut` in
+- [X] T008 [P] [US2] Confirm `handleZoomOut` in
   `src/features/viewer/components/ViewerScreen.tsx`
   calls `setZoomLevel(Math.max(ZOOM_MIN, zoomLevel - ZOOM_STEP))` where `ZOOM_MIN = 0.25`.
   No change is required if already correct.
@@ -110,7 +110,7 @@ scale, centered, in one click.
 
 ### Tests for User Story 3
 
-- [ ] T009 [US3] In `src/test/ViewerScreen.test.tsx`, add a test group
+- [X] T009 [US3] In `src/test/ViewerScreen.test.tsx`, add a test group
   `"ViewerScreen — Reset (US3)"` with the following assertion:
   - Pan the image via `fireEvent.pointerDown/pointerMove/pointerUp` on the frame to establish a
     non-zero offset.
@@ -120,7 +120,7 @@ scale, centered, in one click.
 
 ### Implementation for User Story 3
 
-- [ ] T010 [US3] Confirm `handleZoomReset` in
+- [X] T010 [US3] Confirm `handleZoomReset` in
   `src/features/viewer/components/ViewerScreen.tsx`
   calls `setZoomLevel(1)` AND `setPanOffset({ x: 0, y: 0 })` together.
   No change is required if already correct.
@@ -139,7 +139,7 @@ frame — `setPointerCapture` must be called. Both operations must work in seque
 
 ### Tests for User Story 4
 
-- [ ] T011 [P] [US4] In `src/test/ViewerScreen.test.tsx`, add a test group
+- [X] T011 [P] [US4] In `src/test/ViewerScreen.test.tsx`, add a test group
   `"ViewerScreen — Pointer Capture Guard (US4)"` with:
   - Stub `HTMLElement.prototype.setPointerCapture = vi.fn()` in `beforeEach`.
   - **Test A**: `fireEvent.pointerDown` with target = a zoom button (`getByRole('button', { name: /zoom in/i })`) →
@@ -147,7 +147,7 @@ frame — `setPointerCapture` must be called. Both operations must work in seque
   - **Test B**: `fireEvent.pointerDown` with target = `.album-viewer-image-frame` div (not a button) →
     `setPointerCapture` **must** have been called once.
 
-- [ ] T012 [P] [US4] In `src/test/ViewerScreen.test.tsx`, within the same group, add:
+- [X] T012 [P] [US4] In `src/test/ViewerScreen.test.tsx`, within the same group, add:
   - **Test C**: Pan drag still works after a zoom button click — simulate zoom click then
     `pointerDown/pointerMove/pointerUp` on the frame; image `transform` must reflect the drag delta.
   - **Test D**: `fireEvent.pointerDown` on zoom button + `fireEvent.pointerUp` on frame →
@@ -155,7 +155,7 @@ frame — `setPointerCapture` must be called. Both operations must work in seque
 
 ### Implementation for User Story 4
 
-- [ ] T013 [US4] Verify `isInteractiveTarget` in
+- [X] T013 [US4] Verify `isInteractiveTarget` in
   `src/features/viewer/components/ViewerScreen.tsx`
   correctly distinguishes button targets from plain div/img targets by checking the existing
   implementation against the test assertions added in T011–T012.
@@ -169,13 +169,13 @@ frame — `setPointerCapture` must be called. Both operations must work in seque
 
 **Purpose**: Final verification that all user stories are green and no regressions were introduced.
 
-- [ ] T014 [P] Run `pnpm test` and confirm all test files pass with 0 failures.
+- [X] T014 [P] Run `pnpm test` and confirm all test files pass with 0 failures.
   Expected: ≥ 37 tests (34 existing + ≥ 3 new US4 tests), 0 failures.
 
-- [ ] T015 [P] Run `pnpm build` (`tsc && vite build`) and confirm TypeScript compilation produces
+- [X] T015 [P] Run `pnpm build` (`tsc && vite build`) and confirm TypeScript compilation produces
   0 errors.
 
-- [ ] T016 Perform manual validation per `specs/014-fix-viewer-zoom-buttons/quickstart.md`:
+- [X] T016 Perform manual validation per `specs/014-fix-viewer-zoom-buttons/quickstart.md`:
   run `pnpm tauri dev`, open an album, exercise all five manual scenarios
   (SC-001 through SC-005), confirm zero console errors.
 

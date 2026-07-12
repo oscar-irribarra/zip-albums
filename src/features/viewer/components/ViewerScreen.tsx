@@ -8,6 +8,17 @@ function isEditableTarget( target: EventTarget | null ): boolean {
   return Boolean( el?.isContentEditable || tag === "input" || tag === "textarea" || tag === "select" );
 }
 
+// T002: Returns true when the pointer event target is an interactive descendant
+// (zoom buttons, anchors, inputs) that should handle its own click event.
+// Used to prevent pointer capture from being set when buttons are clicked.
+function isInteractiveTarget( target: EventTarget | null ): boolean {
+  const el = target as HTMLElement | null;
+  if ( !el ) return false;
+  if ( el.closest?.( ".viewer-zoom-controls" ) ) return true;
+  if ( el.closest?.( "button, a, input, textarea, select" ) ) return true;
+  return Boolean( el.isContentEditable );
+}
+
 function ViewerScreen() {
   const session = useLibraryStore( ( s ) => s.viewerSession );
   const image = useLibraryStore( ( s ) => s.viewerImage );
@@ -40,6 +51,9 @@ function ViewerScreen() {
   const dragStart = useRef( { x: 0, y: 0, panX: 0, panY: 0 } );
 
   const handlePointerDown = ( e: React.PointerEvent<HTMLDivElement> ) => {
+    // T003: Skip capture when the click originates from an interactive control
+    // (zoom buttons etc.) so the button receives its own pointerup / click event.
+    if ( isInteractiveTarget( e.target ) ) return;
     isDragging.current = true;
     dragStart.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y };
     e.currentTarget.setPointerCapture( e.pointerId );
@@ -54,7 +68,15 @@ function ViewerScreen() {
 
   const handlePointerUp = ( e: React.PointerEvent<HTMLDivElement> ) => {
     isDragging.current = false;
-    e.currentTarget.releasePointerCapture( e.pointerId );
+    // T004: Only release capture if it was actually acquired; some WebView environments
+    // (and jsdom in tests) may not implement the full Pointer Events API.
+    try {
+      if ( e.currentTarget.hasPointerCapture?.( e.pointerId ) ) {
+        e.currentTarget.releasePointerCapture( e.pointerId );
+      }
+    } catch {
+      // Ignore release errors in environments without full pointer capture support.
+    }
   };
 
   useEffect( () => {
