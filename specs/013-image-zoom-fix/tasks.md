@@ -39,8 +39,8 @@
 
 **Checkpoint**: After T001 and T002, the app is fully runnable. Zoom In and Zoom Out produce correct 10% steps and respect the 25%–400% range. FR-001, FR-002, FR-003 satisfied.
 
-- [ ] T001 [US1] Fix `ZOOM_STEP` constant from `0.25` to `0.10` in `src/features/viewer/components/ViewerScreen.tsx`
-- [ ] T002 [US1] Fix `ZOOM_MIN` constant from `0.50` to `0.25` in `src/features/viewer/components/ViewerScreen.tsx`
+- [X] T001 [US1] Fix `ZOOM_STEP` constant from `0.25` to `0.10` in `src/features/viewer/components/ViewerScreen.tsx`
+- [X] T002 [US1] Fix `ZOOM_MIN` constant from `0.50` to `0.25` in `src/features/viewer/components/ViewerScreen.tsx`
 
 ---
 
@@ -52,8 +52,8 @@
 
 **Checkpoint**: After T003 and T004, the app is fully runnable. Dragging is enabled at any zoom level and panning is unconstrained. FR-005 satisfied. US1 behavior unchanged.
 
-- [ ] T003 [US2] Remove `if (zoomLevel <= 1) return;` guard from `handlePointerDown` in `src/features/viewer/components/ViewerScreen.tsx`
-- [ ] T004 [US2] Remove `maxX`/`maxY` boundary clamping and the `!prevImageSize` guard from `handlePointerMove` in `src/features/viewer/components/ViewerScreen.tsx` — apply pan delta directly: `setPanOffset({ x: newX, y: newY })`
+- [X] T003 [US2] Remove `if (zoomLevel <= 1) return;` guard from `handlePointerDown` in `src/features/viewer/components/ViewerScreen.tsx`
+- [X] T004 [US2] Remove `maxX`/`maxY` boundary clamping and the `!prevImageSize` guard from `handlePointerMove` in `src/features/viewer/components/ViewerScreen.tsx` — apply pan delta directly: `setPanOffset({ x: newX, y: newY })`
 
 ---
 
@@ -65,7 +65,7 @@
 
 **Checkpoint**: After T005, the app is fully runnable. The grab cursor appears at all zoom levels. FR-006, FR-007 remain satisfied (no reset logic changes needed — already correct). US1 and US2 behaviour unchanged.
 
-- [ ] T005 [US3] Apply `album-viewer-image-frame--zoomed` CSS modifier class unconditionally (remove `zoomLevel > 1` conditional) in `src/features/viewer/components/ViewerScreen.tsx`
+- [X] T005 [US3] Apply `album-viewer-image-frame--zoomed` CSS modifier class unconditionally (remove `zoomLevel > 1` conditional) in `src/features/viewer/components/ViewerScreen.tsx`
 
 ---
 
@@ -85,20 +85,20 @@
 
 ### Tests — User Story 1: Zoom In and Out
 
-- [ ] T006 [P] [US1] Create `src/test/ViewerScreen.test.tsx`; mock `useLibraryStore` with `vi.mock`; add test: Zoom In from 1.0 calls `setZoomLevel(1.1)`; add test: Zoom In at 4.0 calls `setZoomLevel(4.0)` (clamped)
-- [ ] T007 [US1] Add test: Zoom Out from 1.0 calls `setZoomLevel(0.9)`; add test: Zoom Out at 0.25 calls `setZoomLevel(0.25)` (clamped) — in `src/test/ViewerScreen.test.tsx`
+- [X] T006 [P] [US1] Create `src/test/ViewerScreen.test.tsx`; mock `useLibraryStore` with `vi.mock`; add test: Zoom In from 1.0 calls `setZoomLevel(1.1)`; add test: Zoom In at 4.0 calls `setZoomLevel(4.0)` (clamped)
+- [X] T007 [US1] Add test: Zoom Out from 1.0 calls `setZoomLevel(0.9)`; add test: Zoom Out at 0.25 calls `setZoomLevel(0.25)` (clamped) — in `src/test/ViewerScreen.test.tsx`
 
 ### Tests — User Story 2: Pan While Zoomed
 
-- [ ] T008 [US2] Add test: firing `pointerdown` + `pointermove` + `pointerup` at `zoomLevel` 1.0 results in a non-zero `panOffset` (drag works at 100% scale) — in `src/test/ViewerScreen.test.tsx`
+- [X] T008 [US2] Add test: firing `pointerdown` + `pointermove` + `pointerup` at `zoomLevel` 1.0 results in a non-zero `panOffset` (drag works at 100% scale) — in `src/test/ViewerScreen.test.tsx`
 
 ### Tests — User Story 3: Reset
 
-- [ ] T009 [US3] Add test: clicking the Reset button calls `setZoomLevel(1)` and verifies that the image `transform` style reverts to `translate(0px, 0px) scale(1)` — in `src/test/ViewerScreen.test.tsx`
+- [X] T009 [US3] Add test: clicking the Reset button calls `setZoomLevel(1)` and verifies that the image `transform` style reverts to `translate(0px, 0px) scale(1)` — in `src/test/ViewerScreen.test.tsx`
 
 ### Manual Validation
 
-- [ ] T010 [US1, US2, US3] Run all 6 acceptance scenarios in `specs/013-image-zoom-fix/quickstart.md` against the running Tauri application and confirm every Pass Criteria row is met
+- [X] T010 [US1, US2, US3] Run all 6 acceptance scenarios in `specs/013-image-zoom-fix/quickstart.md` against the running Tauri application and confirm every Pass Criteria row is met
 
 ---
 

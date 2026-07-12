@@ -25,8 +25,8 @@ function ViewerScreen() {
   const sessionCurrentIndex = session?.current_index ?? 0;
   const sessionTotalImages = session?.total_images ?? 0;
 
-  const ZOOM_STEP = 0.25;
-  const ZOOM_MIN  = 0.5;
+  const ZOOM_STEP = 0.10;
+  const ZOOM_MIN  = 0.25;
   const ZOOM_MAX  = 4.0;
 
   const handleZoomIn    = () => setZoomLevel( Math.min( ZOOM_MAX, zoomLevel + ZOOM_STEP ) );
@@ -36,28 +36,20 @@ function ViewerScreen() {
   const [prevImageSize, setPrevImageSize] = useState<{ width: number; height: number } | null>( null );
   const [hoverVisible, setHoverVisible] = useState( false );
   const [panOffset, setPanOffset] = useState( { x: 0, y: 0 } );
-  const frameRef = useRef<HTMLDivElement>( null );
   const isDragging = useRef( false );
   const dragStart = useRef( { x: 0, y: 0, panX: 0, panY: 0 } );
 
   const handlePointerDown = ( e: React.PointerEvent<HTMLDivElement> ) => {
-    if ( zoomLevel <= 1 ) return;
     isDragging.current = true;
     dragStart.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y };
     e.currentTarget.setPointerCapture( e.pointerId );
   };
 
   const handlePointerMove = ( e: React.PointerEvent<HTMLDivElement> ) => {
-    if ( !isDragging.current || !frameRef.current || !prevImageSize ) return;
-    const frame = frameRef.current.getBoundingClientRect();
-    const maxX = Math.max( 0, ( prevImageSize.width * zoomLevel - frame.width ) / 2 );
-    const maxY = Math.max( 0, ( prevImageSize.height * zoomLevel - frame.height ) / 2 );
+    if ( !isDragging.current ) return;
     const newX = dragStart.current.panX + ( e.clientX - dragStart.current.x );
     const newY = dragStart.current.panY + ( e.clientY - dragStart.current.y );
-    setPanOffset( {
-      x: Math.max( -maxX, Math.min( newX, maxX ) ),
-      y: Math.max( -maxY, Math.min( newY, maxY ) ),
-    } );
+    setPanOffset( { x: newX, y: newY } );
   };
 
   const handlePointerUp = ( e: React.PointerEvent<HTMLDivElement> ) => {
@@ -156,8 +148,7 @@ function ViewerScreen() {
         aria-label="Album viewer"
       >
         <div
-          ref={frameRef}
-          className={`album-viewer-image-frame${zoomLevel > 1 ? " album-viewer-image-frame--zoomed" : ""}`}
+          className="album-viewer-image-frame album-viewer-image-frame--zoomed"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
